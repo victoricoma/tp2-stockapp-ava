@@ -119,6 +119,88 @@ Neste diagrama:
 
 O controlador `ProductsController` será responsável por gerenciar os endpoints relacionados à entidade `Product`. Ele permitirá a realização de operações CRUD (Create, Read, Update, Delete) e será estruturado conforme os princípios de Clean Architecture. Dividiremos a implementação do controlador em quatro tarefas, utilizando a pontuação Fibonacci para priorizar e categorizar a complexidade das tarefas. 
 
+## Melhorias Aplicadas Até o Momento:
+### Pontos de Melhoria nas Tarefas Anteriores
+
+Ao propor as 20 tarefas adicionais para o MVP de StockApp, busquei melhorar e expandir as funcionalidades do repositório `tp2-stockapp-ava`. Abaixo estão as melhorias específicas e os pontos abordados nas novas tarefas:
+
+1. **Validação de Dados**:
+   - **Tarefa 21**: Adicionar validação de dados no modelo `Product` para garantir a integridade dos dados inseridos.
+
+2. **Configuração de CORS**:
+   - **Tarefa 22**: Configurar o CORS para permitir requisições de diferentes origens, facilitando a integração com frontend e outras APIs.
+
+3. **Paginação**:
+   - **Tarefa 23**: Implementar paginação nos endpoints de leitura para melhorar a performance e a usabilidade ao lidar com grandes volumes de dados.
+
+4. **Logging**:
+   - **Tarefa 24**: Adicionar logging usando Serilog para registrar requisições e erros, facilitando a depuração e a manutenção do sistema.
+
+5. **Caching**:
+   - **Tarefa 25**: Implementar caching usando Redis para melhorar a performance das leituras frequentes.
+
+6. **Relatórios de Estoque Baixo**:
+   - **Tarefa 26**: Adicionar um endpoint para gerar relatórios de produtos com estoque baixo, ajudando na gestão do estoque.
+
+7. **Atualização em Massa**:
+   - **Tarefa 27**: Implementar um endpoint de atualização em massa para facilitar a administração de múltiplos produtos.
+
+8. **Exportação de Relatórios**:
+   - **Tarefa 28**: Adicionar suporte à exportação de relatórios em formato CSV, permitindo a análise offline e a integração com outras ferramentas.
+
+9. **Autenticação Multi-Fator (MFA)**:
+   - **Tarefa 29**: Implementar autenticação multi-fator para aumentar a segurança do sistema.
+
+10. **Reposição Automática de Estoque**:
+    - **Tarefa 30**: Adicionar funcionalidade para repor automaticamente o estoque de produtos com baixo estoque, garantindo disponibilidade contínua.
+
+11. **Upload de Imagem de Produtos**:
+    - **Tarefa 31**: Implementar a funcionalidade de upload de imagem para os produtos, melhorando a apresentação visual no frontend.
+
+12. **Notificações em Tempo Real**:
+    - **Tarefa 32**: Implementar notificações em tempo real usando SignalR para alterações no estoque, proporcionando atualizações instantâneas aos usuários.
+
+13. **Auditoria de Mudanças no Estoque**:
+    - **Tarefa 33**: Adicionar auditoria de mudanças no estoque para registrar e monitorar alterações, melhorando a rastreabilidade.
+
+14. **Sistema de Permissões Granulares**:
+    - **Tarefa 34**: Implementar um sistema de permissões granulares para controlar o acesso a diferentes funcionalidades com base em roles.
+
+15. **Integração com API Externa para Cotação de Preços**:
+    - **Tarefa 35**: Adicionar integração com uma API externa para obter cotações de preços dos produtos, auxiliando na precificação dinâmica.
+
+16. **Filtragem Avançada nos Relatórios**:
+    - **Tarefa 36**: Implementar funcionalidade de filtragem avançada nos relatórios de produtos, facilitando a análise e a tomada de decisões.
+
+17. **Backup Automático do Banco de Dados**:
+    - **Tarefa 37**: Adicionar funcionalidade de backup automático do banco de dados para garantir a segurança e a recuperação de dados.
+
+18. **Importação de Dados em Massa**:
+    - **Tarefa 38**: Implementar a funcionalidade para importar dados de produtos em massa a partir de um arquivo CSV, agilizando a inserção de grandes volumes de dados.
+
+19. **Notificações por Email**:
+    - **Tarefa 39**: Adicionar sistema de notificações por email para alertar sobre eventos importantes como baixo estoque.
+
+20. **Relatórios Gráficos**:
+    - **Tarefa 40**: Implementar funcionalidade de geração de relatórios gráficos de estoque e vendas, facilitando a visualização de dados e tendências.
+
+21. **Avaliação de Produtos pelos Clientes**:
+    - **Tarefa 41**: Adicionar funcionalidade para que os clientes possam avaliar os produtos, proporcionando feedback valioso.
+
+22. **Busca Avançada**:
+    - **Tarefa 42**: Implementar busca avançada com suporte a filtros e ordenação, melhorando a experiência do usuário na busca de produtos.
+
+23. **Recomendação de Produtos**:
+    - **Tarefa 43**: Adicionar sistema de recomendação de produtos baseado no histórico de compras dos clientes, incentivando vendas cruzadas.
+
+24. **Carrinho de Compras**:
+    - **Tarefa 44**: Implementar funcionalidade de carrinho de compras para os clientes, facilitando a gestão de pedidos.
+
+25. **Checkout e Processamento de Pagamentos**:
+    - **Tarefa 45**: Adicionar funcionalidade de checkout e integração com um serviço de processamento de pagamentos, completando o ciclo de vendas.
+
+Essas melhorias abrangem a segurança, usabilidade, performance e novas funcionalidades do StockApp, avançando o projeto para um MVP robusto e funcional.
+
 #### Tarefas
 
 1. **(5 pontos) Criação do Controlador e Endpoints de Leitura (`GetAll` e `GetById`)**
