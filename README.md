@@ -110,98 +110,146 @@ Neste diagrama:
 - **Infra.IoC**: Contém as configurações para injeção de dependências.
 - **Infra.Data**: Contém as implementações dos repositórios e a configuração do Entity Framework para interação com o Azure SQL Server.
 - **Azure SQL Server**: Banco de dados relacional utilizado para armazenar os dados da aplicação.
-
-# Tarefas para Avaliação:
-
-### Tarefas para Implementação do Controlador `ProductsController` em .NET 6
-
-#### Introdução
-
-O controlador `ProductsController` será responsável por gerenciar os endpoints relacionados à entidade `Product`. Ele permitirá a realização de operações CRUD (Create, Read, Update, Delete) e será estruturado conforme os princípios de Clean Architecture. Dividiremos a implementação do controlador em quatro tarefas, utilizando a pontuação Fibonacci para priorizar e categorizar a complexidade das tarefas. 
-
-## Melhorias Aplicadas Até o Momento:
+  
+# Melhorias Aplicadas:
 ### Pontos de Melhoria nas Tarefas Anteriores
 
-Ao propor as 20 tarefas adicionais para o MVP de StockApp, busquei melhorar e expandir as funcionalidades do repositório `tp2-stockapp-ava`. Abaixo estão as melhorias específicas e os pontos abordados nas novas tarefas:
-
-1. **Validação de Dados**:
-   - **Tarefa 21**: Adicionar validação de dados no modelo `Product` para garantir a integridade dos dados inseridos.
+1. **Documentação e Comentários XML na API**:
+   - **Tarefa 46**: Adiciona comentários XML nos controladores e métodos da API, melhorando a documentação automática com Swagger e a compreensão do código.
 
 2. **Configuração de CORS**:
-   - **Tarefa 22**: Configurar o CORS para permitir requisições de diferentes origens, facilitando a integração com frontend e outras APIs.
+   - **Tarefa 22**: Configura CORS (Cross-Origin Resource Sharing) para permitir requisições de diferentes origens, facilitando a integração com frontend e outras APIs.
 
 3. **Paginação**:
-   - **Tarefa 23**: Implementar paginação nos endpoints de leitura para melhorar a performance e a usabilidade ao lidar com grandes volumes de dados.
+   - **Tarefa 23**: Implementa paginação nos endpoints de leitura para melhorar a performance e usabilidade ao lidar com grandes volumes de dados.
 
 4. **Logging**:
-   - **Tarefa 24**: Adicionar logging usando Serilog para registrar requisições e erros, facilitando a depuração e a manutenção do sistema.
+   - **Tarefa 24**: Adiciona logging usando Serilog para registrar requisições e erros, facilitando a depuração e manutenção do sistema.
 
 5. **Caching**:
-   - **Tarefa 25**: Implementar caching usando Redis para melhorar a performance das leituras frequentes.
+   - **Tarefa 25**: Implementa caching usando Redis para melhorar a performance das leituras frequentes.
 
 6. **Relatórios de Estoque Baixo**:
-   - **Tarefa 26**: Adicionar um endpoint para gerar relatórios de produtos com estoque baixo, ajudando na gestão do estoque.
+   - **Tarefa 26**: Adiciona um endpoint para gerar relatórios de produtos com estoque baixo, ajudando na gestão do estoque.
 
 7. **Atualização em Massa**:
-   - **Tarefa 27**: Implementar um endpoint de atualização em massa para facilitar a administração de múltiplos produtos.
+   - **Tarefa 27**: Implementa um endpoint de atualização em massa para facilitar a administração de múltiplos produtos.
 
 8. **Exportação de Relatórios**:
-   - **Tarefa 28**: Adicionar suporte à exportação de relatórios em formato CSV, permitindo a análise offline e a integração com outras ferramentas.
+   - **Tarefa 28**: Adiciona suporte à exportação de relatórios em formato CSV, permitindo a análise offline e integração com outras ferramentas.
 
 9. **Autenticação Multi-Fator (MFA)**:
-   - **Tarefa 29**: Implementar autenticação multi-fator para aumentar a segurança do sistema.
+   - **Tarefa 29**: Implementa autenticação multi-fator para aumentar a segurança do sistema.
 
 10. **Reposição Automática de Estoque**:
-    - **Tarefa 30**: Adicionar funcionalidade para repor automaticamente o estoque de produtos com baixo estoque, garantindo disponibilidade contínua.
+    - **Tarefa 30**: Adiciona funcionalidade para repor automaticamente o estoque de produtos com baixo estoque, garantindo disponibilidade contínua.
 
 11. **Upload de Imagem de Produtos**:
-    - **Tarefa 31**: Implementar a funcionalidade de upload de imagem para os produtos, melhorando a apresentação visual no frontend.
+    - **Tarefa 31**: Implementa a funcionalidade de upload de imagem para os produtos, melhorando a apresentação visual no frontend.
 
 12. **Notificações em Tempo Real**:
-    - **Tarefa 32**: Implementar notificações em tempo real usando SignalR para alterações no estoque, proporcionando atualizações instantâneas aos usuários.
+    - **Tarefa 32**: Implementa notificações em tempo real usando SignalR para alterações no estoque, proporcionando atualizações instantâneas aos usuários.
 
 13. **Auditoria de Mudanças no Estoque**:
-    - **Tarefa 33**: Adicionar auditoria de mudanças no estoque para registrar e monitorar alterações, melhorando a rastreabilidade.
+    - **Tarefa 33**: Adiciona auditoria de mudanças no estoque para registrar e monitorar alterações, melhorando a rastreabilidade.
 
 14. **Sistema de Permissões Granulares**:
-    - **Tarefa 34**: Implementar um sistema de permissões granulares para controlar o acesso a diferentes funcionalidades com base em roles.
+    - **Tarefa 34**: Implementa um sistema de permissões granulares para controlar o acesso a diferentes funcionalidades com base em roles.
 
 15. **Integração com API Externa para Cotação de Preços**:
-    - **Tarefa 35**: Adicionar integração com uma API externa para obter cotações de preços dos produtos, auxiliando na precificação dinâmica.
+    - **Tarefa 35**: Adiciona integração com uma API externa para obter cotações de preços dos produtos, auxiliando na precificação dinâmica.
 
 16. **Filtragem Avançada nos Relatórios**:
-    - **Tarefa 36**: Implementar funcionalidade de filtragem avançada nos relatórios de produtos, facilitando a análise e a tomada de decisões.
+    - **Tarefa 36**: Implementa funcionalidade de filtragem avançada nos relatórios de produtos, facilitando a análise e a tomada de decisões.
 
 17. **Backup Automático do Banco de Dados**:
-    - **Tarefa 37**: Adicionar funcionalidade de backup automático do banco de dados para garantir a segurança e a recuperação de dados.
+    - **Tarefa 37**: Adiciona funcionalidade de backup automático do banco de dados para garantir a segurança e a recuperação de dados.
 
 18. **Importação de Dados em Massa**:
-    - **Tarefa 38**: Implementar a funcionalidade para importar dados de produtos em massa a partir de um arquivo CSV, agilizando a inserção de grandes volumes de dados.
+    - **Tarefa 38**: Implementa a funcionalidade para importar dados de produtos em massa a partir de um arquivo CSV, agilizando a inserção de grandes volumes de dados.
 
 19. **Notificações por Email**:
-    - **Tarefa 39**: Adicionar sistema de notificações por email para alertar sobre eventos importantes como baixo estoque.
+    - **Tarefa 39**: Adiciona sistema de notificações por email para alertar sobre eventos importantes como baixo estoque.
 
 20. **Relatórios Gráficos**:
-    - **Tarefa 40**: Implementar funcionalidade de geração de relatórios gráficos de estoque e vendas, facilitando a visualização de dados e tendências.
+    - **Tarefa 40**: Implementa funcionalidade de geração de relatórios gráficos de estoque e vendas, facilitando a visualização de dados e tendências.
 
 21. **Avaliação de Produtos pelos Clientes**:
-    - **Tarefa 41**: Adicionar funcionalidade para que os clientes possam avaliar os produtos, proporcionando feedback valioso.
+    - **Tarefa 41**: Adiciona funcionalidade para que os clientes possam avaliar os produtos, proporcionando feedback valioso.
 
 22. **Busca Avançada**:
-    - **Tarefa 42**: Implementar busca avançada com suporte a filtros e ordenação, melhorando a experiência do usuário na busca de produtos.
+    - **Tarefa 42**: Implementa busca avançada com suporte a filtros e ordenação, melhorando a experiência do usuário na busca de produtos.
 
 23. **Recomendação de Produtos**:
-    - **Tarefa 43**: Adicionar sistema de recomendação de produtos baseado no histórico de compras dos clientes, incentivando vendas cruzadas.
+    - **Tarefa 43**: Adiciona sistema de recomendação de produtos baseado no histórico de compras dos clientes, incentivando vendas cruzadas.
 
 24. **Carrinho de Compras**:
-    - **Tarefa 44**: Implementar funcionalidade de carrinho de compras para os clientes, facilitando a gestão de pedidos.
+    - **Tarefa 44**: Implementa funcionalidade de carrinho de compras para os clientes, facilitando a gestão de pedidos.
 
 25. **Checkout e Processamento de Pagamentos**:
-    - **Tarefa 45**: Adicionar funcionalidade de checkout e integração com um serviço de processamento de pagamentos, completando o ciclo de vendas.
+    - **Tarefa 45**: Adiciona funcionalidade de checkout e integração com um serviço de processamento de pagamentos, completando o ciclo de vendas.
 
-Essas melhorias abrangem a segurança, usabilidade, performance e novas funcionalidades do StockApp, avançando o projeto para um MVP robusto e funcional.
+26. **Recuperação de Senha**:
+    - **Tarefa 51**: Adiciona uma funcionalidade para recuperação de senha via email, aumentando a segurança e usabilidade do sistema.
 
-#### Tarefas
+27. **Autenticação com Redes Sociais**:
+    - **Tarefa 52**: Implementa autenticação usando provedores de redes sociais como Google e Facebook, facilitando o login para os usuários.
+
+28. **Testes de Carga**:
+    - **Tarefa 53**: Configura e executa testes de carga para avaliar o desempenho da API sob condições de alta carga.
+
+29. **Webhook**:
+    - **Tarefa 54**: Implementa uma funcionalidade de webhook para notificar sistemas externos sobre eventos importantes.
+
+30. **Suporte a GraphQL**:
+    - **Tarefa 55**: Adiciona suporte a GraphQL para consultas mais flexíveis e eficientes.
+
+31. **Análise de Sentimento**:
+    - **Tarefa 56**: Adiciona uma funcionalidade para analisar o sentimento das avaliações dos produtos.
+
+32. **Integração com Serviço de Mensagens (SMS)**:
+    - **Tarefa 57**: Adiciona suporte para envio de mensagens SMS para notificações críticas.
+
+33. **Pesquisa de Texto Completo**:
+    - **Tarefa 58**: Implementa uma funcionalidade de pesquisa de texto completo para melhorar a busca de produtos.
+
+34. **Sistema de Backup Incremental**:
+    - **Tarefa 59**: Adiciona um sistema de backup incremental para reduzir o tempo e os recursos necessários para backups.
+
+35. **Agendamento de Tarefas**:
+    - **Tarefa 60**: Implementa uma funcionalidade para agendamento de tarefas recorrentes.
+
+36. **Integração com ERP Externo**:
+    - **Tarefa 61**: Adiciona integração com um sistema ERP externo para sincronizar dados de produtos e estoque.
+
+37. **Controle de Acesso Baseado em Claims**:
+    - **Tarefa 62**: Adiciona um sistema de controle de acesso baseado em claims para gerenciar permissões detalhadas.
+
+38. **Comparação de Produtos**:
+    - **Tarefa 63**: Implementa uma funcionalidade para permitir que os usuários comparem diferentes produtos.
+
+39. **Cache Distribuído com Redis**:
+    - **Tarefa 64**: Adiciona suporte para cache distribuído usando Redis, melhorando a escalabilidade.
+
+40. **Recomendação Personalizada com Machine Learning**:
+    - **Tarefa 65**: Adiciona uma funcionalidade de recomendação personalizada usando modelos de machine learning.
+
+41. **Monitoramento e Alertas com Prometheus e Grafana**:
+    - **Tarefa 66**: Configura monitoramento e alertas usando Prometheus e Grafana para monitorar a saúde do sistema.
+
+42. **Sistema de Workflow**:
+    - **Tarefa 67**: Adiciona um sistema de workflow para gerenciar processos de negócios complexos.
+
+43. **Análise Preditiva de Vendas**:
+    - **Tarefa 68**: Adiciona uma funcionalidade para análise preditiva de vendas usando algoritmos de machine learning.
+
+44. **Gestão de Inventário Just-in-Time**:
+    - **Tarefa 69**: Adiciona uma funcionalidade para gestão de inventário just-in-time, otimizando o estoque com base na demanda.
+
+45. **Sistema de Feedback com Análise de Sentimento**:
+    - **Tarefa 70**: Adiciona um sistema de feedback para clientes com análise de sentimento para avaliar a satisfação.
+
+# Tarefas para Avaliação:
 
 1. **(5 pontos) Criação do Controlador e Endpoints de Leitura (`GetAll` e `GetById`)**
    - **Descrição**: Crie o controlador `ProductsController` e implemente os métodos para obter todos os produtos e obter um produto por ID.
@@ -1465,4 +1513,367 @@ SecurityRequirement
 
       // Configuração no Program.cs
       builder.Services.AddSingleton<ICheckoutService, CheckoutService>();
+      ```
+
+46. **(3 pontos) Adicionar Comentários XML na API**
+    - **Descrição**: Adicione comentários XML nos controladores e métodos da API para melhorar a documentação e o Swagger.
+    - **Código**:
+      ```csharp
+      /// <summary>
+      /// Obtém todos os produtos.
+      /// </summary>
+      /// <returns>Lista de produtos.</returns>
+      [HttpGet]
+      public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+      {
+          var products = await _productRepository.GetAllAsync();
+          return Ok(products);
+      }
+      ```
+
+47. **(3 pontos) Configurar Taxa de Limitação (Rate Limiting)**
+    - **Descrição**: Implemente uma política de limitação de taxa para controlar a quantidade de requisições.
+    - **Código**:
+      ```csharp
+      builder.Services.AddRateLimiter(options =>
+      {
+          options.GlobalLimiter = RateLimitPartition.GetFixedWindowLimiter(_ => RateLimitPolicies.PermitLimit(100, TimeSpan.FromMinutes(1)));
+      });
+      ```
+
+48. **(5 pontos) Adicionar Cache de Respostas HTTP**
+    - **Descrição**: Configure o cache de respostas HTTP para melhorar o desempenho.
+    - **Código**:
+      ```csharp
+      [HttpGet]
+      [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
+      public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+      {
+          var products = await _productRepository.GetAllAsync();
+          return Ok(products);
+      }
+      ```
+
+49. **(5 pontos) Implementar Suporte a Internacionalização (i18n)**
+    - **Descrição**: Adicione suporte a internacionalização para permitir a tradução da API em diferentes idiomas.
+    - **Código**:
+      ```csharp
+      builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+      var app = builder.Build();
+
+      app.UseRequestLocalization(new RequestLocalizationOptions
+      {
+          DefaultRequestCulture = new RequestCulture("en-US"),
+          SupportedCultures = new[] { new CultureInfo("en-US"), new CultureInfo("pt-BR") },
+          SupportedUICultures = new[] { new CultureInfo("en-US"), new CultureInfo("pt-BR") }
+      });
+      ```
+
+50. **(8 pontos) Adicionar Log de Auditoria de Usuários**
+    - **Descrição**: Implemente logs detalhados de auditoria para ações de usuários, incluindo login e alterações de dados.
+    - **Código**:
+      ```csharp
+      public class UserAuditService : IUserAuditService
+      {
+          private readonly ILogger<UserAuditService> _logger;
+
+          public UserAuditService(ILogger<UserAuditService> logger)
+          {
+              _logger = logger;
+          }
+
+          public void LogUserAction(string username, string action)
+          {
+              _logger.LogInformation($"User: {username} performed action: {action} at {DateTime.UtcNow}");
+          }
+      }
+      ```
+
+51. **(8 pontos) Implementar Recuperação de Senha**
+    - **Descrição**: Adicione uma funcionalidade para recuperação de senha via email.
+    - **Código**:
+      ```csharp
+      [HttpPost("forgot-password")]
+      public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+      {
+          var user = await _userRepository.GetByUsernameAsync(forgotPasswordDto.Username);
+          if (user == null)
+          {
+              return NotFound("User not found");
+          }
+
+          var resetToken = GenerateResetToken();
+          // Enviar email com token de redefinição de senha
+
+          return Ok();
+      }
+
+      private string GenerateResetToken()
+      {
+          // Implementação da geração de token
+          return Guid.NewGuid().ToString();
+      }
+      ```
+
+52. **(8 pontos) Adicionar Autenticação com Redes Sociais**
+    - **Descrição**: Implemente autenticação usando provedores de redes sociais como Google e Facebook.
+    - **Código**:
+      ```csharp
+      builder.Services.AddAuthentication()
+          .AddGoogle(options =>
+          {
+              options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+              options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+          })
+          .AddFacebook(options =>
+          {
+              options.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+              options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+          });
+      ```
+
+53. **(13 pontos) Implementar Testes de Carga (Load Testing)**
+    - **Descrição**: Configure e execute testes de carga para avaliar o desempenho da API sob condições de alta carga.
+    - **Ferramentas**: Utilize ferramentas como Apache JMeter ou locust.io para executar os testes.
+
+54. **(13 pontos) Adicionar Funcionalidade de Webhook**
+    - **Descrição**: Implemente uma funcionalidade de webhook para notificar sistemas externos sobre eventos importantes.
+    - **Código**:
+      ```csharp
+      [HttpPost("webhook")]
+      public async Task<IActionResult> Webhook([FromBody] WebhookDto webhookDto)
+      {
+          // Implementação da lógica de webhook
+          return Ok();
+      }
+      ```
+
+55. **(13 pontos) Implementar Suporte a GraphQL**
+    - **Descrição**: Adicione suporte a GraphQL para consultas mais flexíveis e eficientes.
+    - **Código**:
+      ```csharp
+      builder.Services.AddGraphQLServer()
+          .AddQueryType<Query>()
+          .AddMutationType<Mutation>();
+
+      public class Query
+      {
+          public IQueryable<Product> GetProducts([Service] IProductRepository productRepository) => productRepository.GetAll();
+      }
+      ```
+
+56. **(21 pontos) Implementar Análise de Sentimento para Avaliações de Produtos**
+    - **Descrição**: Adicione uma funcionalidade para analisar o sentimento das avaliações dos produtos.
+    - **Código**:
+      ```csharp
+      public class SentimentAnalysisService : ISentimentAnalysisService
+      {
+          public string AnalyzeSentiment(string review)
+          {
+              // Implementação da análise de sentimento
+              return "Positive"; // Exemplo de retorno
+          }
+      }
+      ```
+
+57. **(21 pontos) Implementar Integração com Serviço de Mensagens (SMS)**
+    - **Descrição**: Adicione suporte para envio de mensagens SMS para notificações críticas.
+    - **Código**:
+      ```csharp
+      public class SmsService : ISmsService
+      {
+          private readonly string _smsApiUrl;
+
+          public SmsService(IConfiguration configuration)
+          {
+              _smsApiUrl = configuration["SmsApiUrl"];
+          }
+
+          public async Task SendSmsAsync(string phoneNumber, string message)
+          {
+              // Implementação do envio de SMS
+          }
+      }
+      ```
+
+58. **(21 pontos) Adicionar Funcionalidade de Pesquisa de Texto Completo**
+    - **Descrição**: Implemente uma funcionalidade de pesquisa de texto completo para melhorar a busca de produtos.
+    - **Ferramentas**: Utilize o ElasticSearch ou o Azure Cognitive Search para implementar essa funcionalidade.
+
+59. **(21 pontos) Implementar Sistema de Backup Incremental**
+    - **Descrição**: Adicione um sistema de backup incremental para reduzir o tempo e os recursos necessários para backups.
+    - **Código**:
+      ```csharp
+      public class IncrementalBackupService : IBackupService
+      {
+          public void PerformBackup()
+          {
+              // Implementação do backup incremental
+          }
+      }
+      ```
+
+60. **(21 pontos) Adicionar Funcionalidade de Agendamento de Tarefas**
+    - **Descrição**: Implemente uma funcionalidade para agendamento de tarefas recorrentes.
+    - **Ferramentas**: Utilize Quartz.NET para implementar o agendamento de tarefas.
+
+61. **(34 pontos) Implementar Integração com ERP Externo**
+    - **Descrição**: Adicione integração com um sistema ERP externo para sincronizar dados de produtos e estoque.
+    - **Código**:
+      ```csharp
+      public class ErpIntegrationService : IErpIntegrationService
+      {
+          private readonly HttpClient _httpClient;
+
+          public ErpIntegrationService(HttpClient httpClient)
+          {
+              _httpClient = httpClient;
+          }
+
+          public async Task SyncDataAsync()
+          {
+              var response = await _httpClient.GetAsync("https://erp.external.com/api/products");
+              response.EnsureSuccessStatusCode();
+
+              var products = await response.Content.ReadAsAsync<List<Product>>();
+              // Sincronizar dados com o banco de dados local
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddHttpClient<IErpIntegrationService, ErpIntegrationService>();
+      ```
+
+62. **(34 pontos) Implementar Controle de Acesso Baseado em Claims**
+    - **Descrição**: Adicione um sistema de controle de acesso baseado em claims para gerenciar permissões detalhadas.
+    - **Código**:
+      ```csharp
+      public class ClaimsAuthorizationRequirement : IAuthorizationRequirement
+      {
+          public string ClaimType { get; }
+          public string ClaimValue { get; }
+
+          public ClaimsAuthorizationRequirement(string claimType, string claimValue)
+         
+
+ {
+              ClaimType = claimType;
+              ClaimValue = claimValue;
+          }
+      }
+
+      public class ClaimsAuthorizationHandler : AuthorizationHandler<ClaimsAuthorizationRequirement>
+      {
+          protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ClaimsAuthorizationRequirement requirement)
+          {
+              if (context.User.HasClaim(c => c.Type == requirement.ClaimType && c.Value == requirement.ClaimValue))
+              {
+                  context.Succeed(requirement);
+              }
+              return Task.CompletedTask;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddAuthorization(options =>
+      {
+          options.AddPolicy("CanManageProducts", policy =>
+              policy.Requirements.Add(new ClaimsAuthorizationRequirement("Permission", "CanManageProducts")));
+      });
+
+      builder.Services.AddSingleton<IAuthorizationHandler, ClaimsAuthorizationHandler>();
+      ```
+
+63. **(34 pontos) Implementar Funcionalidade de Comparação de Produtos**
+    - **Descrição**: Adicione uma funcionalidade para permitir que os usuários comparem diferentes produtos.
+    - **Código**:
+      ```csharp
+      [HttpPost("compare")]
+      public async Task<ActionResult<IEnumerable<Product>>> CompareProducts([FromBody] List<int> productIds)
+      {
+          var products = await _productRepository.GetByIdsAsync(productIds);
+          return Ok(products);
+      }
+      ```
+
+64. **(34 pontos) Implementar Mecanismo de Cache Distribuído com Redis**
+    - **Descrição**: Adicione suporte para cache distribuído usando Redis, melhorando a escalabilidade.
+    - **Código**:
+      ```csharp
+      builder.Services.AddStackExchangeRedisCache(options =>
+      {
+          options.Configuration = builder.Configuration.GetConnectionString("Redis");
+      });
+      ```
+
+65. **(34 pontos) Implementar Sistema de Recomendação Personalizada usando Machine Learning**
+    - **Descrição**: Adicione uma funcionalidade de recomendação personalizada usando modelos de machine learning.
+    - **Ferramentas**: Utilize bibliotecas como ML.NET ou TensorFlow.NET para treinar e implementar o modelo de recomendação.
+
+66. **(34 pontos) Implementar Monitoramento e Alertas com Prometheus e Grafana**
+    - **Descrição**: Configure monitoramento e alertas usando Prometheus e Grafana para monitorar a saúde do sistema.
+    - **Código**:
+      ```yaml
+      # Configuração de exemplo para Prometheus
+      global:
+        scrape_interval: 15s
+
+      scrape_configs:
+        - job_name: 'aspnetcore'
+          static_configs:
+            - targets: ['localhost:5000']
+      ```
+
+67. **(34 pontos) Implementar Sistema de Workflow**
+    - **Descrição**: Adicione um sistema de workflow para gerenciar processos de negócios complexos.
+    - **Ferramentas**: Utilize ferramentas como Workflow Core para implementar o sistema de workflow.
+
+68. **(55 pontos) Implementar Análise Preditiva de Vendas**
+    - **Descrição**: Adicione uma funcionalidade para análise preditiva de vendas usando algoritmos de machine learning.
+    - **Ferramentas**: Utilize ML.NET ou Azure Machine Learning para treinar modelos de previsão de vendas.
+    - **Código**:
+      ```csharp
+      public class SalesPredictionService : ISalesPredictionService
+      {
+          public double PredictSales(int productId, int month, int year)
+          {
+              // Implementação da previsão de vendas usando modelo de machine learning
+              return 1000.0; // Exemplo de retorno
+          }
+      }
+      ```
+
+69. **(55 pontos) Implementar Gestão de Inventário Just-in-Time**
+    - **Descrição**: Adicione uma funcionalidade para gestão de inventário just-in-time, otimizando o estoque com base na demanda.
+    - **Código**:
+      ```csharp
+      public class JustInTimeInventoryService : IJustInTimeInventoryService
+      {
+          public async Task OptimizeInventoryAsync()
+          {
+              // Implementação da otimização de inventário just-in-time
+          }
+      }
+      ```
+
+70. **(55 pontos) Implementar Sistema de Feedback com Análise de Sentimento**
+    - **Descrição**: Adicione um sistema de feedback para clientes com análise de sentimento para avaliar a satisfação.
+    - **Código**:
+      ```csharp
+      public class FeedbackService : IFeedbackService
+      {
+          private readonly ISentimentAnalysisService _sentimentAnalysisService;
+
+          public FeedbackService(ISentimentAnalysisService sentimentAnalysisService)
+          {
+              _sentimentAnalysisService = sentimentAnalysisService;
+          }
+
+          public async Task SubmitFeedbackAsync(string userId, string feedback)
+          {
+              var sentiment = _sentimentAnalysisService.AnalyzeSentiment(feedback);
+              // Armazenar feedback com o resultado da análise de sentimento
+          }
+      }
       ```
