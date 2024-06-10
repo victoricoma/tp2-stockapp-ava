@@ -788,3 +788,599 @@ SecurityRequirement
         app.Run();
         ```
 
+21. **(3 pontos) Adicionar Validação de Dados no Modelo `Product`**
+    - **Descrição**: Adicione anotações de validação de dados no modelo `Product`.
+    - **Código**:
+      ```csharp
+      public class Product
+      {
+          public int Id { get; set; }
+
+          [Required]
+          public string Name { get; set; }
+
+          [Required]
+          public string Description { get; set; }
+
+          [Range(0, double.MaxValue)]
+          public decimal Price { get; set; }
+
+          [Range(0, int.MaxValue)]
+          public int Stock { get; set; }
+      }
+      ```
+
+22. **(3 pontos) Configuração de Cors no `Program.cs`**
+    - **Descrição**: Configure o CORS (Cross-Origin Resource Sharing) para permitir requisições de diferentes origens.
+    - **Código**:
+      ```csharp
+      var builder = WebApplication.CreateBuilder(args);
+
+      builder.Services.AddControllers();
+      builder.Services.AddCors(options =>
+      {
+          options.AddPolicy("AllowAll", builder =>
+          {
+              builder.AllowAnyOrigin()
+                     .AllowAnyMethod()
+                     .AllowAnyHeader();
+          });
+      });
+
+      var app = builder.Build();
+
+      app.UseCors("AllowAll");
+
+      app.UseRouting();
+      app.UseAuthentication();
+      app.UseAuthorization();
+
+      app.MapControllers();
+
+      app.Run();
+      ```
+
+23. **(5 pontos) Implementar Paginação nos Endpoints de Leitura**
+    - **Descrição**: Adicione suporte a paginação nos endpoints `GetAll` para produtos.
+    - **Código**:
+      ```csharp
+      [HttpGet]
+      public async Task<ActionResult<IEnumerable<Product>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+      {
+          var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
+          return Ok(products);
+      }
+      ```
+
+24. **(5 pontos) Adicionar Logging usando Serilog**
+    - **Descrição**: Configure o Serilog para logging de requisições e erros.
+    - **Código**:
+      ```csharp
+      var builder = WebApplication.CreateBuilder(args);
+
+      Log.Logger = new LoggerConfiguration()
+          .WriteTo.Console()
+          .CreateLogger();
+
+      builder.Host.UseSerilog();
+
+      builder.Services.AddControllers();
+
+      var app = builder.Build();
+
+      app.UseSerilogRequestLogging();
+
+      app.UseRouting();
+      app.UseAuthentication();
+      app.UseAuthorization();
+
+      app.MapControllers();
+
+      app.Run();
+      ```
+
+25. **(8 pontos) Implementar Cache usando Redis**
+    - **Descrição**: Adicione suporte a caching usando Redis para melhorar a performance das leituras.
+    - **Código**:
+      ```csharp
+      var builder = WebApplication.CreateBuilder(args);
+
+      builder.Services.AddStackExchangeRedisCache(options =>
+      {
+          options.Configuration = builder.Configuration.GetConnectionString("Redis");
+      });
+
+      builder.Services.AddControllers();
+
+      var app = builder.Build();
+
+      app.UseRouting();
+      app.UseAuthentication();
+      app.UseAuthorization();
+
+      app.MapControllers();
+
+      app.Run();
+      ```
+
+26. **(8 pontos) Adicionar Relatório de Estoque Baixo**
+    - **Descrição**: Implemente um endpoint para gerar relatórios de produtos com estoque baixo.
+    - **Código**:
+      ```csharp
+      [HttpGet("low-stock")]
+      public async Task<ActionResult<IEnumerable<Product>>> GetLowStock([FromQuery] int threshold)
+      {
+          var products = await _productRepository.GetLowStockAsync(threshold);
+          return Ok(products);
+      }
+      ```
+
+27. **(13 pontos) Implementar Endpoint de Atualização em Massa**
+    - **Descrição**: Adicione um endpoint para atualizar múltiplos produtos em uma única requisição.
+    - **Código**:
+      ```csharp
+      [HttpPut("bulk-update")]
+      public async Task<IActionResult> BulkUpdate([FromBody] List<Product> products)
+      {
+          await _productRepository.BulkUpdateAsync(products);
+          return NoContent();
+      }
+      ```
+
+28. **(13 pontos) Adicionar Suporte a Exportação de Relatórios em CSV**
+    - **Descrição**: Implemente a funcionalidade de exportar relatórios de produtos em formato CSV.
+    - **Código**:
+      ```csharp
+      [HttpGet("export")]
+      public IActionResult ExportToCsv()
+      {
+          var products = _productRepository.GetAll();
+          var csv = new StringBuilder();
+          csv.AppendLine("Id,Name,Description,Price,Stock");
+
+          foreach (var product in products)
+          {
+              csv.AppendLine($"{product.Id},{product.Name},{product.Description},{product.Price},{product.Stock}");
+          }
+
+          return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", "products.csv");
+      }
+      ```
+
+29. **(13 pontos) Implementar Autenticação Multi-Fator (MFA)**
+    - **Descrição**: Adicione suporte para autenticação multi-fator usando códigos OTP (One-Time Password).
+    - **Código**:
+      ```csharp
+      public class MfaService : IMfaService
+      {
+          public string GenerateOtp()
+          {
+              var otp = new Random().Next(100000, 999999).ToString();
+              // Armazenar OTP no cache ou banco de dados para validação posterior
+              return otp;
+          }
+
+          public bool ValidateOtp(string userOtp, string storedOtp)
+          {
+              return userOtp == storedOtp;
+          }
+      }
+      ```
+
+30. **(21 pontos) Implementar Função de Reposição Automática de Estoque**
+    - **Descrição**: Adicione uma funcionalidade para repor automaticamente o estoque de produtos com baixo estoque.
+    - **Código**:
+      ```csharp
+      public class InventoryService : IInventoryService
+      {
+          private readonly IProductRepository _productRepository;
+
+          public InventoryService(IProductRepository productRepository)
+          {
+              _productRepository = productRepository;
+          }
+
+          public async Task ReplenishStockAsync()
+          {
+              var lowStockProducts = await _productRepository.GetLowStockAsync(10); // threshold de exemplo
+              foreach (var product in lowStockProducts)
+              {
+                  product.Stock += 50; // quantidade de reposição de exemplo
+                  await _productRepository.UpdateAsync(product);
+              }
+          }
+      }
+      ```
+
+31. **(21 pontos) Adicionar Funcionalidade de Upload de Imagem de Produtos**
+    - **Descrição**: Implemente a funcionalidade de upload de imagem para os produtos.
+    - **Código**:
+      ```csharp
+      [HttpPost("{id}/upload-image")]
+      public async Task<IActionResult> UploadImage(int id, IFormFile image)
+      {
+          if (image == null || image.Length == 0)
+          {
+              return BadRequest("Invalid image.");
+          }
+
+          var filePath = Path.Combine("wwwroot/images", $"{id}.jpg");
+
+          using (var stream = new FileStream(filePath, FileMode.Create))
+          {
+              await image.CopyToAsync(stream);
+          }
+
+          return Ok();
+      }
+      ```
+
+32. **(34 pontos) Implementar Notificações em Tempo Real usando SignalR**
+    - **Descrição**: Adicione suporte para notificações em tempo real usando SignalR para alterações no estoque.
+    - **Código**:
+      ```csharp
+      public class StockHub : Hub
+      {
+          public async Task SendStockUpdate(string productId, int newStock)
+          {
+              await Clients.All.SendAsync("ReceiveStockUpdate", productId, newStock);
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSignalR();
+
+      var app = builder.Build();
+
+      app.UseRouting();
+      app.UseAuthentication();
+      app.UseAuthorization();
+
+      app.MapHub<StockHub>("/stockhub");
+
+      app.MapControllers();
+
+      app.Run();
+      ```
+
+33. **(34 pontos) Implementar Auditoria de Mudanças no Estoque**
+    - **Descrição**: Adicione uma funcionalidade para auditar todas as mudanças no estoque e registrar logs detalhados.
+    - **Código**:
+      ```csharp
+      public class AuditService : IAuditService
+      {
+          private readonly IProductRepository _productRepository;
+          private readonly ILogger<AuditService> _logger;
+
+          public AuditService(IProductRepository productRepository, ILogger<AuditService> logger)
+          {
+              _productRepository = productRepository;
+              _logger = logger;
+          }
+
+          public async Task AuditStockChange(int productId, int oldStock, int newStock)
+          {
+              var product = await _productRepository.GetByIdAsync(productId);
+              _logger.LogInformation($"Product: {product.Name}, Old Stock: {oldStock}, New Stock: {newStock}");
+          }
+      }
+      ```
+
+34. **(21 pontos) Implementar Sistema de Permissões Granulares**
+    - **Descrição**: Adicione um sistema de permissões granulares para controlar o acesso a diferentes funcionalidades com base em roles.
+    - **Código**:
+      ```csharp
+      public class PermissionRequirement : IAuthorizationRequirement
+      {
+          public string Permission { get
+
+; }
+
+          public PermissionRequirement(string permission)
+          {
+              Permission = permission;
+          }
+      }
+
+      public class PermissionHandler : AuthorizationHandler<PermissionRequirement>
+      {
+          protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
+          {
+              if (context.User.HasClaim(c => c.Type == "Permission" && c.Value == requirement.Permission))
+              {
+                  context.Succeed(requirement);
+              }
+              return Task.CompletedTask;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddAuthorization(options =>
+      {
+          options.AddPolicy("CanManageStock", policy =>
+              policy.Requirements.Add(new PermissionRequirement("CanManageStock")));
+      });
+
+      builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+      ```
+
+35. **(34 pontos) Implementar Integração com API Externa para Cotação de Preços**
+    - **Descrição**: Adicione uma funcionalidade para integrar com uma API externa para obter cotações de preços dos produtos.
+    - **Código**:
+      ```csharp
+      public class PricingService : IPricingService
+      {
+          private readonly HttpClient _httpClient;
+
+          public PricingService(HttpClient httpClient)
+          {
+              _httpClient = httpClient;
+          }
+
+          public async Task<decimal> GetProductPriceAsync(string productId)
+          {
+              var response = await _httpClient.GetAsync($"https://api.pricing.com/products/{productId}");
+              response.EnsureSuccessStatusCode();
+
+              var content = await response.Content.ReadAsStringAsync();
+              var price = JsonConvert.DeserializeObject<decimal>(content);
+
+              return price;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddHttpClient<IPricingService, PricingService>(client =>
+      {
+          client.BaseAddress = new Uri("https://api.pricing.com/");
+      });
+      ```
+
+36. **(21 pontos) Adicionar Funcionalidade de Filtragem Avançada nos Relatórios**
+    - **Descrição**: Implemente a funcionalidade de filtragem avançada nos relatórios de produtos.
+    - **Código**:
+      ```csharp
+      [HttpGet("filtered")]
+      public async Task<ActionResult<IEnumerable<Product>>> GetFiltered([FromQuery] string name, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
+      {
+          var products = await _productRepository.GetFilteredAsync(name, minPrice, maxPrice);
+          return Ok(products);
+      }
+      ```
+
+37. **(21 pontos) Adicionar Funcionalidade de Backup Automático do Banco de Dados**
+    - **Descrição**: Implemente a funcionalidade de backup automático do banco de dados para garantir a segurança dos dados.
+    - **Código**:
+      ```csharp
+      public class BackupService : IBackupService
+      {
+          private readonly string _backupPath;
+
+          public BackupService(IConfiguration configuration)
+          {
+              _backupPath = configuration["BackupPath"];
+          }
+
+          public void BackupDatabase()
+          {
+              var backupFile = Path.Combine(_backupPath, $"backup_{DateTime.Now:yyyyMMddHHmmss}.bak");
+              // Implementação do backup do banco de dados
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IBackupService, BackupService>();
+      ```
+
+38. **(21 pontos) Adicionar Função de Importação de Dados em Massa**
+    - **Descrição**: Adicione a funcionalidade para importar dados de produtos em massa a partir de um arquivo CSV.
+    - **Código**:
+      ```csharp
+      [HttpPost("import")]
+      public async Task<IActionResult> ImportFromCsv(IFormFile file)
+      {
+          if (file == null || file.Length == 0)
+          {
+              return BadRequest("Invalid file.");
+          }
+
+          using (var stream = new StreamReader(file.OpenReadStream()))
+          {
+              while (!stream.EndOfStream)
+              {
+                  var line = await stream.ReadLineAsync();
+                  var values = line.Split(',');
+
+                  var product = new Product
+                  {
+                      Name = values[0],
+                      Description = values[1],
+                      Price = decimal.Parse(values[2]),
+                      Stock = int.Parse(values[3])
+                  };
+
+                  await _productRepository.AddAsync(product);
+              }
+          }
+
+          return Ok();
+      }
+      ```
+
+39. **(21 pontos) Implementar Sistema de Notificações por Email**
+    - **Descrição**: Adicione um sistema de notificações por email para alertar sobre eventos importantes como baixo estoque.
+    - **Código**:
+      ```csharp
+      public class EmailNotificationService : IEmailNotificationService
+      {
+          private readonly SmtpClient _smtpClient;
+
+          public EmailNotificationService(SmtpClient smtpClient)
+          {
+              _smtpClient = smtpClient;
+          }
+
+          public void SendLowStockAlert(string emailAddress, string productName)
+          {
+              var mailMessage = new MailMessage("noreply@stockapp.com", emailAddress)
+              {
+                  Subject = "Low Stock Alert",
+                  Body = $"The product {productName} is low on stock."
+              };
+
+              _smtpClient.Send(mailMessage);
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IEmailNotificationService, EmailNotificationService>();
+      ```
+
+40. **(34 pontos) Implementar Sistema de Relatórios com Gráficos**
+    - **Descrição**: Adicione uma funcionalidade para gerar relatórios gráficos de estoque e vendas.
+    - **Código**:
+      ```csharp
+      public class ReportService : IReportService
+      {
+          public byte[] GenerateStockReport()
+          {
+              var chart = new Chart
+              {
+                  Width = 600,
+                  Height = 400,
+                  RenderType = RenderType.ImageTag,
+                  ChartAreas = { new ChartArea() }
+              };
+
+              var series = new Series
+              {
+                  Name = "Stock",
+                  ChartType = SeriesChartType.Bar
+              };
+
+              // Adicionar dados ao gráfico
+              chart.Series.Add(series);
+
+              using (var stream = new MemoryStream())
+              {
+                  chart.SaveImage(stream, ChartImageFormat.Png);
+                  return stream.ToArray();
+              }
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IReportService, ReportService>();
+      ```
+
+41. **(34 pontos) Implementar Funcionalidade de Avaliação de Produtos pelos Clientes**
+    - **Descrição**: Adicione uma funcionalidade para que os clientes possam avaliar os produtos.
+    - **Código**:
+      ```csharp
+      public class Review
+      {
+          public int Id { get; set; }
+          public int ProductId { get; set; }
+          public string UserId { get; set; }
+          public int Rating { get; set; }
+          public string Comment { get; set; }
+          public DateTime Date { get; set; }
+      }
+
+      [HttpPost("{productId}/review")]
+      public async Task<IActionResult> AddReview(int productId, [FromBody] Review review)
+      {
+          review.ProductId = productId;
+          review.Date = DateTime.Now;
+
+          await _reviewRepository.AddAsync(review);
+          return Ok();
+      }
+      ```
+
+42. **(34 pontos) Implementar Sistema de Busca Avançada**
+    - **Descrição**: Adicione uma funcionalidade de busca avançada com suporte a filtros e ordenação.
+    - **Código**:
+      ```csharp
+      [HttpGet("search")]
+      public async Task<ActionResult<IEnumerable<Product>>> Search([FromQuery] string query, [FromQuery] string sortBy, [FromQuery] bool descending)
+      {
+          var products = await _productRepository.SearchAsync(query, sortBy, descending);
+          return Ok(products);
+      }
+      ```
+
+43. **(34 pontos) Implementar Sistema de Recomendação de Produtos**
+    - **Descrição**: Adicione uma funcionalidade de recomendação de produtos baseada no histórico de compras dos clientes.
+    - **Código**:
+      ```csharp
+      public class RecommendationService : IRecommendationService
+      {
+          private readonly IOrderRepository _orderRepository;
+
+          public RecommendationService(IOrderRepository orderRepository)
+          {
+              _orderRepository = orderRepository;
+          }
+
+          public async Task<IEnumerable<Product>> GetRecommendationsAsync(string userId)
+          {
+              var userOrders = await _orderRepository.GetByUserIdAsync(userId);
+              var recommendedProducts = userOrders.SelectMany(order => order.Products)
+                                                  .GroupBy(product => product.Id)
+                                                  .OrderByDescending(group => group.Count())
+                                                  .Select(group => group.First())
+                                                  .Take(5);
+
+              return recommendedProducts;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IRecommendationService, RecommendationService>();
+      ```
+
+44. **(34 pontos) Implementar Funcionalidade de Carrinho de Compras**
+    - **Descrição**: Adicione uma funcionalidade de carrinho de compras para os clientes.
+    - **Código**:
+      ```csharp
+      public class CartItem
+      {
+          public int ProductId { get; set; }
+          public int Quantity { get; set; }
+      }
+
+      [HttpPost("cart")]
+      public async Task<IActionResult> AddToCart([FromBody] CartItem cartItem)
+      {
+          await _cartService.AddToCartAsync(cartItem);
+          return Ok();
+      }
+      ```
+
+45. **(34 pontos) Implementar Checkout e Processamento de Pagamentos**
+    - **Descrição**: Adicione uma funcionalidade de checkout e integração com um serviço de processamento de pagamentos.
+    - **Código**:
+      ```csharp
+      public class CheckoutService : ICheckoutService
+      {
+          private readonly IPaymentGateway _paymentGateway;
+
+          public CheckoutService(IPaymentGateway paymentGateway)
+          {
+             
+
+ _paymentGateway = paymentGateway;
+          }
+
+          public async Task<PaymentResult> ProcessCheckoutAsync(CheckoutRequest checkoutRequest)
+          {
+              // Processar o pagamento
+              var paymentResult = await _paymentGateway.ProcessPaymentAsync(checkoutRequest.PaymentDetails);
+              return paymentResult;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ICheckoutService, CheckoutService>();
+      ```
