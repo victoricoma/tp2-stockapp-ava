@@ -1,4 +1,5 @@
-### Descrição Detalhada do Repositório `tp2-stockapp`
+# Descrição Detalhada do Repositório `tp2-stockapp`
+![Logo Quadrado HelPr](https://github.com/victoricoma/tp2-stockapp-ava/assets/31005408/0d9e2fad-2213-4d3f-9b38-b611e0449246)
 
 #### Visão Geral
 
@@ -110,7 +111,8 @@ Neste diagrama:
 - **Infra.IoC**: Contém as configurações para injeção de dependências.
 - **Infra.Data**: Contém as implementações dos repositórios e a configuração do Entity Framework para interação com o Azure SQL Server.
 - **Azure SQL Server**: Banco de dados relacional utilizado para armazenar os dados da aplicação.
-  
+## Documentação feito por:
+![2](https://github.com/victoricoma/tp2-stockapp-ava/assets/31005408/55069c14-9f55-4368-b83a-104eb59f2463)
 # Melhorias Aplicadas:
 ### Pontos de Melhoria nas Tarefas Anteriores
 
