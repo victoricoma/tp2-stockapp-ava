@@ -113,195 +113,72 @@ Neste diagrama:
 
 # Tarefas para Avaliação:
 
-1. **(3 pontos) Criar o Modelo `Product` na Camada `Domain`**
-   - **Descrição**: Adicione uma classe `Product` na camada `Domain` para representar os produtos.
+### Tarefas para Implementação do Controlador `ProductsController` em .NET 6
+
+#### Introdução
+
+O controlador `ProductsController` será responsável por gerenciar os endpoints relacionados à entidade `Product`. Ele permitirá a realização de operações CRUD (Create, Read, Update, Delete) e será estruturado conforme os princípios de Clean Architecture. Dividiremos a implementação do controlador em quatro tarefas, utilizando a pontuação Fibonacci para priorizar e categorizar a complexidade das tarefas. 
+
+#### Tarefas
+
+1. **(5 pontos) Criação do Controlador e Endpoints de Leitura (`GetAll` e `GetById`)**
+   - **Descrição**: Crie o controlador `ProductsController` e implemente os métodos para obter todos os produtos e obter um produto por ID.
    - **Código**:
      ```csharp
-     public class Product
+     using Microsoft.AspNetCore.Mvc;
+     using System.Collections.Generic;
+     using System.Threading.Tasks;
+     using tp2_stockapp_ava.Domain.Entities;
+     using tp2_stockapp_ava.Domain.Interfaces;
+
+     namespace tp2_stockapp_ava.API.Controllers
      {
-         public int Id { get; set; }
-         public string Name { get; set; }
-         public string Description { get; set; }
-         public decimal Price { get; set; }
-         public int Stock { get; set; }
-     }
-     ```
-
-2. **(5 pontos) Criar Interface de Repositório para `Product`**
-   - **Descrição**: Crie uma interface de repositório para `Product` na camada `Domain` para definir as operações CRUD.
-   - **Código**:
-     ```csharp
-     public interface IProductRepository
-     {
-         Task<Product> GetByIdAsync(int id);
-         Task<IEnumerable<Product>> GetAllAsync();
-         Task AddAsync(Product product);
-         Task UpdateAsync(Product product);
-         Task DeleteAsync(int id);
-     }
-     ```
-
-3. **(8 pontos) Implementar Repositório `Product` na Camada `Infra.Data`**
-   - **Descrição**: Implemente o repositório `Product` na camada `Infra.Data` utilizando Entity Framework para interagir com o banco de dados Azure SQL Server.
-   - **Código**:
-     ```csharp
-     public class ProductRepository : IProductRepository
-     {
-         private readonly AppDbContext _context;
-
-         public ProductRepository(AppDbContext context)
+         [ApiController]
+         [Route("api/[controller]")]
+         public class ProductsController : ControllerBase
          {
-             _context = context;
-         }
+             private readonly IProductRepository _productRepository;
 
-         public async Task<Product> GetByIdAsync(int id)
-         {
-             return await _context.Products.FindAsync(id);
-         }
-
-         public async Task<IEnumerable<Product>> GetAllAsync()
-         {
-             return await _context.Products.ToListAsync();
-         }
-
-         public async Task AddAsync(Product product)
-         {
-             _context.Products.Add(product);
-             await _context.SaveChangesAsync();
-         }
-
-         public async Task UpdateAsync(Product product)
-         {
-             _context.Products.Update(product);
-             await _context.SaveChangesAsync();
-         }
-
-         public async Task DeleteAsync(int id)
-         {
-             var product = await _context.Products.FindAsync(id);
-             if (product != null)
+             public ProductsController(IProductRepository productRepository)
              {
-                 _context.Products.Remove(product);
-                 await _context.SaveChangesAsync();
+                 _productRepository = productRepository;
+             }
+
+             [HttpGet]
+             public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+             {
+                 var products = await _productRepository.GetAllAsync();
+                 return Ok(products);
+             }
+
+             [HttpGet("{id}")]
+             public async Task<ActionResult<Product>> GetById(int id)
+             {
+                 var product = await _productRepository.GetByIdAsync(id);
+                 if (product == null)
+                 {
+                     return NotFound();
+                 }
+                 return Ok(product);
              }
          }
      }
      ```
 
-4. **(13 pontos) Criar Endpoints de Leitura (`GetById` e `GetAll`) para `Product`**
-   - **Descrição**: Crie os endpoints para obter um produto por ID e obter todos os produtos na camada `API`.
-   - **Código**:
-     ```csharp
-     [ApiController]
-     [Route("api/[controller]")]
-     public class ProductsController : ControllerBase
-     {
-         private readonly IProductRepository _productRepository;
-
-         public ProductsController(IProductRepository productRepository)
-         {
-             _productRepository = productRepository;
-         }
-
-         [HttpGet("{id}")]
-         public async Task<IActionResult> GetById(int id)
-         {
-             var product = await _productRepository.GetByIdAsync(id);
-             if (product == null)
-             {
-                 return NotFound();
-             }
-             return Ok(product);
-         }
-
-         [HttpGet]
-         public async Task<IActionResult> GetAll()
-         {
-             var products = await _productRepository.GetAllAsync();
-             return Ok(products);
-         }
-     }
-     ```
-
-5. **(21 pontos) Implementar Segurança JWT na Camada `API`**
-   - **Descrição**: Adicione autenticação JWT à camada `API` para proteger os endpoints.
-   - **Introdução**: JSON Web Tokens (JWT) são um padrão aberto (RFC 7519) para representar reivindicações de forma segura entre duas partes. Para implementar JWT, é necessário configurar o middleware de autenticação e gerar tokens JWT para os usuários autenticados. [Documentação JWT em ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/jwt-authentication?view=aspnetcore-5.0)
-   - **Código**:
-     ```csharp
-     public void ConfigureServices(IServiceCollection services)
-     {
-         // Configuração do JWT
-         var key = Encoding.ASCII.GetBytes(Configuration["Jwt:Key"]);
-         services.AddAuthentication(x =>
-         {
-             x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-             x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-         })
-         .AddJwtBearer(x =>
-         {
-             x.RequireHttpsMetadata = false;
-             x.SaveToken = true;
-             x.TokenValidationParameters = new TokenValidationParameters
-             {
-                 ValidateIssuerSigningKey = true,
-                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                 ValidateIssuer = false,
-                 ValidateAudience = false
-             };
-         });
-
-         services.AddControllers();
-         services.AddSwaggerGen();
-     }
-
-     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-     {
-         if (env.IsDevelopment())
-         {
-             app.UseDeveloperExceptionPage();
-         }
-
-         app.UseRouting();
-         app.UseAuthentication();
-         app.UseAuthorization();
-
-         app.UseEndpoints(endpoints =>
-         {
-             endpoints.MapControllers();
-         });
-
-         app.UseSwagger();
-         app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"));
-     }
-     ```
-
-6. **(34 pontos) Adicionar Middleware de Autorização JWT e Endpoint Protegido para `Product`**
-   - **Descrição**: Adicione middleware de autorização JWT e proteja os endpoints de `Product`.
-   - **Código**:
-     ```csharp
-     [Authorize]
-     [ApiController]
-     [Route("api/[controller]")]
-     public class ProductsController : ControllerBase
-     {
-         // ... (restante do código)
-     }
-     ```
-
-7. **(13 pontos) Criar Endpoint de Criação (`Create`) para `Product`**
-   - **Descrição**: Crie o endpoint para adicionar um novo produto na camada `API`.
+2. **(8 pontos) Implementação dos Endpoints de Criação (`Create`)**
+   - **Descrição**: Implemente o método para adicionar um novo produto.
    - **Código**:
      ```csharp
      [HttpPost]
-     public async Task<IActionResult> Create(Product product)
+     public async Task<ActionResult<Product>> Create(Product product)
      {
          await _productRepository.AddAsync(product);
          return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
      }
      ```
 
-8. **(21 pontos) Criar Endpoint de Atualização (`Update`) para `Product`**
-   - **Descrição**: Crie o endpoint para atualizar um produto existente na camada `API`.
+3. **(8 pontos) Implementação dos Endpoints de Atualização (`Update`)**
+   - **Descrição**: Implemente o método para atualizar um produto existente.
    - **Código**:
      ```csharp
      [HttpPut("{id}")]
@@ -311,54 +188,603 @@ Neste diagrama:
          {
              return BadRequest();
          }
-
          await _productRepository.UpdateAsync(product);
          return NoContent();
      }
      ```
 
-9. **(34 pontos) Criar Endpoint de Deleção (`Delete`) para `Product`**
-   - **Descrição**: Crie o endpoint para deletar um produto existente na camada `API`.
+4. **(13 pontos) Implementação dos Endpoints de Deleção (`Delete`) e Configuração no `Program.cs`**
+   - **Descrição**: Implemente o método para deletar um produto existente e configure o `Program.cs` para registrar o repositório e mapear as rotas.
    - **Código**:
      ```csharp
      [HttpDelete("{id}")]
      public async Task<IActionResult> Delete(int id)
      {
+         var product = await _productRepository.GetByIdAsync(id);
+         if (product == null)
+         {
+             return NotFound();
+         }
          await _productRepository.DeleteAsync(id);
          return NoContent();
      }
      ```
 
-10. **(55 pontos) Implementar Logging Centralizado Usando Serilog e Integrar com Elastic Stack**
-    - **Descrição**: Adicione logging centralizado usando Serilog e integre com Elastic Stack (Elasticsearch, Logstash, Kibana).
-    - **Introdução**: Serilog é uma biblioteca de logging para .NET que permite registrar logs em diferentes formatos e destinos. Elastic Stack é uma suíte de ferramentas para busca, análise e visualização de dados em tempo real, amplamente usada para análise de logs. [Documentação Serilog](https://serilog.net/), [Documentação Elastic Stack](https://www.elastic.co/guide/index.html)
+     - **Código no `Program.cs`**:
+       ```csharp
+       var builder = WebApplication.CreateBuilder(args);
+
+       // Add services to the container.
+       builder.Services.AddControllers();
+       builder.Services.AddScoped<IProductRepository, ProductRepository>();  // Registro do repositório
+
+       var app = builder.Build();
+
+       // Configure the HTTP request pipeline.
+       if (app.Environment.IsDevelopment())
+       {
+           app.UseDeveloperExceptionPage();
+       }
+
+       app.UseRouting();
+       app.UseAuthorization();
+
+       app.MapControllers();
+
+       app.Run();
+       ```
+
+
+5. **(3 pontos) Configuração do AppSettings para JWT**
+   - **Descrição**: Adicione as configurações necessárias no `appsettings.json` para JWT.
+   - **Código**:
+     ```json
+     {
+       "Jwt": {
+         "Key": "ChaveSecretaParaJwtToken",
+         "Issuer": "SeuIssuer",
+         "Audience": "SuaAudience",
+         "ExpireMinutes": 60
+       }
+     }
+     ```
+
+6. **(3 pontos) Criação do DTO `UserLoginDto`**
+   - **Descrição**: Crie o DTO `UserLoginDto` para o login do usuário.
+   - **Código**:
+     ```csharp
+     public class UserLoginDto
+     {
+         public string Username { get; set; }
+         public string Password { get; set; }
+     }
+     ```
+
+7. **(3 pontos) Criação do DTO `UserRegisterDto`**
+   - **Descrição**: Crie o DTO `UserRegisterDto` para o registro do usuário.
+   - **Código**:
+     ```csharp
+     public class UserRegisterDto
+     {
+         public string Username { get; set; }
+         public string Password { get; set; }
+         public string Role { get; set; }  // Ex: Admin, User
+     }
+     ```
+
+8. **(5 pontos) Criação do DTO `TokenResponseDto`**
+   - **Descrição**: Crie o DTO `TokenResponseDto` para a resposta do token JWT.
+   - **Código**:
+     ```csharp
+     public class TokenResponseDto
+     {
+         public string Token { get; set; }
+         public DateTime Expiration { get; set; }
+     }
+     ```
+
+9. **(5 pontos) Criação do Serviço de Autenticação**
+   - **Descrição**: Crie o serviço de autenticação que gerará o token JWT.
+   - **Código**:
+     ```csharp
+     public interface IAuthService
+     {
+         Task<TokenResponseDto> AuthenticateAsync(string username, string password);
+     }
+
+     public class AuthService : IAuthService
+     {
+         private readonly IUserRepository _userRepository;
+         private readonly IConfiguration _configuration;
+
+         public AuthService(IUserRepository userRepository, IConfiguration configuration)
+         {
+             _userRepository = userRepository;
+             _configuration = configuration;
+         }
+
+         public async Task<TokenResponseDto> AuthenticateAsync(string username, string password)
+         {
+             var user = await _userRepository.GetByUsernameAsync(username);
+             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+             {
+                 return null;
+             }
+
+             var tokenHandler = new JwtSecurityTokenHandler();
+             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+             var tokenDescriptor = new SecurityTokenDescriptor
+             {
+                 Subject = new ClaimsIdentity(new[]
+                 {
+                     new Claim(ClaimTypes.Name, user.Username),
+                     new Claim(ClaimTypes.Role, user.Role)
+                 }),
+                 Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"])),
+                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+             };
+             var token = tokenHandler.CreateToken(tokenDescriptor);
+             return new TokenResponseDto
+             {
+                 Token = tokenHandler.WriteToken(token),
+                 Expiration = token.ValidTo
+             };
+         }
+     }
+     ```
+
+10. **(5 pontos) Criação do Controlador `TokenController`**
+    - **Descrição**: Crie o controlador `TokenController` para gerenciar a autenticação.
     - **Código**:
       ```csharp
-      public void ConfigureServices(IServiceCollection services)
+      using Microsoft.AspNetCore.Mvc;
+      using System.Threading.Tasks;
+      using tp2_stockapp_ava.Domain.DTOs;
+
+      namespace tp2_stockapp_ava.API.Controllers
       {
-          // Configuração do Serilog
-          Log.Logger = new LoggerConfiguration()
-              .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(Configuration["ElasticConfiguration:Uri"]))
-              {
-                  AutoRegisterTemplate = true,
-              })
-              .CreateLogger();
-
-          services.AddSingleton(Log.Logger);
-
-          // ... (restante do código)
-      }
-
-      public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-      {
-          if (env.IsDevelopment())
+          [ApiController]
+          [Route("api/[controller]")]
+          public class TokenController : ControllerBase
           {
-              app.UseDeveloperExceptionPage();
+              private readonly IAuthService _authService;
+
+              public TokenController(IAuthService authService)
+              {
+                  _authService = authService;
+              }
+
+              [HttpPost("login")]
+              public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+              {
+                  var token = await _authService.AuthenticateAsync(userLoginDto.Username, userLoginDto.Password);
+                  if (token == null)
+                  {
+                      return Unauthorized();
+                  }
+
+                  return Ok(token);
+              }
           }
-
-          app.UseSerilogRequestLogging();
-
-          // ... (restante do código)
       }
       ```
+
+11. **(8 pontos) Criação do Controlador `UserController` e Endpoint para Criar Usuário**
+    - **Descrição**: Crie o controlador `UserController` e o endpoint para registrar novos usuários.
+    - **Código**:
+      ```csharp
+      using Microsoft.AspNetCore.Mvc;
+      using System.Threading.Tasks;
+      using tp2_stockapp_ava.Domain.DTOs;
+      using tp2_stockapp_ava.Domain.Entities;
+      using tp2_stockapp_ava.Domain.Interfaces;
+
+      namespace tp2_stockapp_ava.API.Controllers
+      {
+          [ApiController]
+          [Route("api/[controller]")]
+          public class UsersController : ControllerBase
+          {
+              private readonly IUserRepository _userRepository;
+
+              public UsersController(IUserRepository userRepository)
+              {
+                  _userRepository = userRepository;
+              }
+
+              [HttpPost("register")]
+              public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
+              {
+                  var user = new User
+                  {
+                      Username = userRegisterDto.Username,
+                      PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password),
+                      Role = userRegisterDto.Role
+                  };
+
+                  await _userRepository.AddAsync(user);
+                  return Ok();
+              }
+          }
+      }
+      ```
+
+12. **(8 pontos) Configuração da Autenticação JWT no `Program.cs`**
+    - **Descrição**: Configure a autenticação JWT no `Program.cs`.
+    - **Código**:
+      ```csharp
+      var builder = WebApplication.CreateBuilder(args);
+
+      // Add services to the container.
+      builder.Services.AddControllers();
+      builder.Services.AddScoped<IUserRepository, UserRepository>();
+      builder.Services.AddScoped<IAuthService, AuthService>();
+
+      var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+      builder.Services.AddAuthentication(options =>
+      {
+          options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+          options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+      })
+      .AddJwtBearer(options =>
+      {
+          options.RequireHttpsMetadata = false;
+          options.SaveToken = true;
+          options.TokenValidationParameters = new TokenValidationParameters
+          {
+              ValidateIssuer = true,
+              ValidateAudience = true,
+              ValidateIssuerSigningKey = true,
+              ValidIssuer = builder.Configuration["Jwt:Issuer"],
+              ValidAudience = builder.Configuration["Jwt:Audience"],
+              IssuerSigningKey = new SymmetricSecurityKey(key)
+          };
+      });
+
+      var app = builder.Build();
+
+      // Configure the HTTP request pipeline.
+      if (app.Environment.IsDevelopment())
+      {
+          app.UseDeveloperExceptionPage();
+      }
+
+      app.UseRouting();
+      app.UseAuthentication();
+      app.UseAuthorization();
+
+      app.MapControllers();
+
+      app.Run();
+      ```
+
+13. **(5 pontos) Adicionar Middleware de Autorização Baseada em Roles**
+    - **Descrição**: Adicione middleware para autorização baseada em roles (funções) para proteger endpoints específicos.
+    - **Código**:
+      ```csharp
+      [Authorize(Roles = "Admin")]
+      [ApiController]
+      [Route("api/[controller]")]
+      public class AdminController : ControllerBase
+      {
+          // Endpoints para administradores
+      }
+      ```
+
+14. **(5 pontos) Criação de Exceções Personalizadas para Autenticação**
+    - **Descrição**: Crie exceções personalizadas para lidar com erros de autenticação.
+    - **Código**:
+      ```csharp
+      public class AuthenticationException : Exception
+      {
+          public AuthenticationException(string message) : base(message) { }
+      }
+
+      public class AuthorizationException : Exception
+      {
+          public AuthorizationException(string message) : base(message) { }
+      }
+      ```
+
+15. **(8 pontos) Configuração do Swagger para Usar JWT**
+    - **Descrição**: Configure o Swagger para incluir o token JWT nos cabeçalhos de autorização.
+    - **Código**:
+      ```csharp
+      builder.Services.AddSwaggerGen(c =>
+      {
+          c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+          var securitySchema = new OpenApiSecurityScheme
+          {
+              Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+              Name = "Authorization",
+              In = ParameterLocation.Header,
+              Type = SecuritySchemeType.Http,
+              Scheme = "bearer",
+              BearerFormat = "JWT",
+              Reference = new OpenApiReference
+              {
+                  Type = ReferenceType.SecurityScheme,
+                  Id = "Bearer"
+              }
+          };
+
+          c.AddSecurityDefinition("Bearer", securitySchema);
+
+          var securityRequirement = new OpenApi
+
+SecurityRequirement
+          {
+              { securitySchema, new[] { "Bearer" } }
+          };
+
+          c.AddSecurityRequirement(securityRequirement);
+      });
+      ```
+
+16. **(8 pontos) Adicionar Testes Unitários para o Serviço de Autenticação**
+    - **Descrição**: Adicione testes unitários para o serviço de autenticação.
+    - **Código**:
+      ```csharp
+      [Fact]
+      public async Task AuthenticateAsync_ValidCredentials_ReturnsToken()
+      {
+          // Arrange
+          var userRepositoryMock = new Mock<IUserRepository>();
+          var configurationMock = new Mock<IConfiguration>();
+          var authService = new AuthService(userRepositoryMock.Object, configurationMock.Object);
+
+          userRepositoryMock.Setup(repo => repo.GetByUsernameAsync(It.IsAny<string>())).ReturnsAsync(new User
+          {
+              Username = "testuser",
+              PasswordHash = BCrypt.Net.BCrypt.HashPassword("password"),
+              Role = "User"
+          });
+
+          configurationMock.Setup(config => config["Jwt:Key"]).Returns("ChaveSecretaParaJwtToken");
+          configurationMock.Setup(config => config["Jwt:Issuer"]).Returns("SeuIssuer");
+          configurationMock.Setup(config => config["Jwt:Audience"]).Returns("SuaAudience");
+
+          // Act
+          var result = await authService.AuthenticateAsync("testuser", "password");
+
+          // Assert
+          Assert.NotNull(result);
+          Assert.IsType<TokenResponseDto>(result);
+      }
+      ```
+
+17. **(13 pontos) Adicionar Testes Unitários para o Controlador `TokenController`**
+    - **Descrição**: Adicione testes unitários para o controlador `TokenController`.
+    - **Código**:
+      ```csharp
+      [Fact]
+      public async Task Login_ValidCredentials_ReturnsToken()
+      {
+          // Arrange
+          var authServiceMock = new Mock<IAuthService>();
+          var tokenController = new TokenController(authServiceMock.Object);
+
+          authServiceMock.Setup(service => service.AuthenticateAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new TokenResponseDto
+          {
+              Token = "token",
+              Expiration = DateTime.UtcNow.AddMinutes(60)
+          });
+
+          var userLoginDto = new UserLoginDto
+          {
+              Username = "testuser",
+              Password = "password"
+          };
+
+          // Act
+          var result = await tokenController.Login(userLoginDto) as OkObjectResult;
+
+          // Assert
+          Assert.NotNull(result);
+          Assert.Equal(200, result.StatusCode);
+          Assert.IsType<TokenResponseDto>(result.Value);
+      }
+      ```
+
+18. **(13 pontos) Adicionar Testes Unitários para o Controlador `UsersController`**
+    - **Descrição**: Adicione testes unitários para o controlador `UsersController`.
+    - **Código**:
+      ```csharp
+      [Fact]
+      public async Task Register_ValidUser_ReturnsOk()
+      {
+          // Arrange
+          var userRepositoryMock = new Mock<IUserRepository>();
+          var usersController = new UsersController(userRepositoryMock.Object);
+
+          var userRegisterDto = new UserRegisterDto
+          {
+              Username = "testuser",
+              Password = "password",
+              Role = "User"
+          };
+
+          // Act
+          var result = await usersController.Register(userRegisterDto) as OkResult;
+
+          // Assert
+          Assert.NotNull(result);
+          Assert.Equal(200, result.StatusCode);
+      }
+      ```
+
+19. **(21 pontos) Testes de Integração para Controladores `TokenController` e `UsersController`**
+    - **Descrição**: Adicione testes de integração para verificar o fluxo completo de registro e autenticação de usuários.
+    - **Código**:
+      ```csharp
+      public class IntegrationTests : IClassFixture<WebApplicationFactory<Startup>>
+      {
+          private readonly HttpClient _client;
+
+          public IntegrationTests(WebApplicationFactory<Startup> factory)
+          {
+              _client = factory.CreateClient();
+          }
+
+          [Fact]
+          public async Task RegisterAndLogin_ValidCredentials_ReturnsToken()
+          {
+              // Arrange
+              var userRegisterDto = new UserRegisterDto
+              {
+                  Username = "testuser",
+                  Password = "password",
+                  Role = "User"
+              };
+
+              var userLoginDto = new UserLoginDto
+              {
+                  Username = "testuser",
+                  Password = "password"
+              };
+
+              // Register
+              var registerResponse = await _client.PostAsJsonAsync("/api/users/register", userRegisterDto);
+              registerResponse.EnsureSuccessStatusCode();
+
+              // Login
+              var loginResponse = await _client.PostAsJsonAsync("/api/token/login", userLoginDto);
+              loginResponse.EnsureSuccessStatusCode();
+
+              var tokenResponse = await loginResponse.Content.ReadFromJsonAsync<TokenResponseDto>();
+
+              // Assert
+              Assert.NotNull(tokenResponse);
+              Assert.NotNull(tokenResponse.Token);
+              Assert.True(tokenResponse.Expiration > DateTime.UtcNow);
+          }
+      }
+      ```
+
+20. **(34 pontos) Implementação de Middleware de Manipulação de Erros e Registro de Logs**
+    - **Descrição**: Adicione um middleware para manipulação de erros e registro de logs detalhados.
+    - **Código**:
+      ```csharp
+      public class ErrorHandlerMiddleware
+      {
+          private readonly RequestDelegate _next;
+          private readonly ILogger<ErrorHandlerMiddleware> _logger;
+
+          public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
+          {
+              _next = next;
+              _logger = logger;
+          }
+
+          public async Task Invoke(HttpContext context)
+          {
+              try
+              {
+                  await _next(context);
+              }
+              catch (Exception ex)
+              {
+                  _logger.LogError(ex, ex.Message);
+                  await HandleExceptionAsync(context, ex);
+              }
+          }
+
+          private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+          {
+              var code = HttpStatusCode.InternalServerError;
+
+              var result = JsonSerializer.Serialize(new { error = exception.Message });
+              context.Response.ContentType = "application/json";
+              context.Response.StatusCode = (int)code;
+              return context.Response.WriteAsync(result);
+          }
+      }
+
+      public static class ErrorHandlerMiddlewareExtensions
+      {
+          public static IApplicationBuilder UseErrorHandlerMiddleware(this IApplicationBuilder builder)
+          {
+              return builder.UseMiddleware<ErrorHandlerMiddleware>();
+          }
+      }
+      ```
+
+      - **Código no `Program.cs`**:
+        ```csharp
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Add services to the container.
+        builder.Services.AddControllers();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+
+        var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(key)
+            };
+        });
+
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+            var securitySchema = new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            };
+
+            c.AddSecurityDefinition("Bearer", securitySchema);
+
+            var securityRequirement = new OpenApiSecurityRequirement
+            {
+                { securitySchema, new[] { "Bearer" } }
+            };
+
+            c.AddSecurityRequirement(securityRequirement);
+        });
+
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+
+        app.UseErrorHandlerMiddleware();  // Adicionando middleware de manipulação de erros
+
+        app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        app.Run();
+        ```
 
