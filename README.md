@@ -1879,3 +1879,1252 @@ SecurityRequirement
           }
       }
       ```
+
+71. **(3 pontos) Criar Classe `Supplier` no Domínio**
+    - **Descrição**: Adicione uma classe `Supplier` na camada `Domain` para representar os fornecedores.
+    - **Código**:
+      ```csharp
+      public class Supplier
+      {
+          public int Id { get; set; }
+          public string Name { get; set; }
+          public string ContactEmail { get; set; }
+          public string PhoneNumber { get; set; }
+      }
+      ```
+
+72. **(3 pontos) Criar Interface de Repositório para `Supplier`**
+    - **Descrição**: Crie uma interface de repositório para `Supplier` na camada `Domain`.
+    - **Código**:
+      ```csharp
+      public interface ISupplierRepository
+      {
+          Task<Supplier> GetByIdAsync(int id);
+          Task<IEnumerable<Supplier>> GetAllAsync();
+          Task AddAsync(Supplier supplier);
+          Task UpdateAsync(Supplier supplier);
+          Task DeleteAsync(int id);
+      }
+      ```
+
+73. **(3 pontos) Implementar Repositório `Supplier` na Camada `Infra.Data`**
+    - **Descrição**: Implemente o repositório `Supplier` na camada `Infra.Data` utilizando Entity Framework.
+    - **Código**:
+      ```csharp
+      public class SupplierRepository : ISupplierRepository
+      {
+          private readonly AppDbContext _context;
+
+          public SupplierRepository(AppDbContext context)
+          {
+              _context = context;
+          }
+
+          public async Task<Supplier> GetByIdAsync(int id)
+          {
+              return await _context.Suppliers.FindAsync(id);
+          }
+
+          public async Task<IEnumerable<Supplier>> GetAllAsync()
+          {
+              return await _context.Suppliers.ToListAsync();
+          }
+
+          public async Task AddAsync(Supplier supplier)
+          {
+              _context.Suppliers.Add(supplier);
+              await _context.SaveChangesAsync();
+          }
+
+          public async Task UpdateAsync(Supplier supplier)
+          {
+              _context.Suppliers.Update(supplier);
+              await _context.SaveChangesAsync();
+          }
+
+          public async Task DeleteAsync(int id)
+          {
+              var supplier = await _context.Suppliers.FindAsync(id);
+              if (supplier != null)
+              {
+                  _context.Suppliers.Remove(supplier);
+                  await _context.SaveChangesAsync();
+              }
+          }
+      }
+      ```
+
+74. **(5 pontos) Criar Controlador `SuppliersController`**
+    - **Descrição**: Crie um controlador `SuppliersController` para gerenciar os fornecedores.
+    - **Código**:
+      ```csharp
+      [ApiController]
+      [Route("api/[controller]")]
+      public class SuppliersController : ControllerBase
+      {
+          private readonly ISupplierRepository _supplierRepository;
+
+          public SuppliersController(ISupplierRepository supplierRepository)
+          {
+              _supplierRepository = supplierRepository;
+          }
+
+          [HttpGet]
+          public async Task<ActionResult<IEnumerable<Supplier>>> GetAll()
+          {
+              var suppliers = await _supplierRepository.GetAllAsync();
+              return Ok(suppliers);
+          }
+
+          [HttpGet("{id}")]
+          public async Task<ActionResult<Supplier>> GetById(int id)
+          {
+              var supplier = await _supplierRepository.GetByIdAsync(id);
+              if (supplier == null)
+              {
+                  return NotFound();
+              }
+              return Ok(supplier);
+          }
+
+          [HttpPost]
+          public async Task<ActionResult<Supplier>> Create(Supplier supplier)
+          {
+              await _supplierRepository.AddAsync(supplier);
+              return CreatedAtAction(nameof(GetById), new { id = supplier.Id }, supplier);
+          }
+
+          [HttpPut("{id}")]
+          public async Task<IActionResult> Update(int id, Supplier supplier)
+          {
+              if (id != supplier.Id)
+              {
+                  return BadRequest();
+              }
+
+              await _supplierRepository.UpdateAsync(supplier);
+              return NoContent();
+          }
+
+          [HttpDelete("{id}")]
+          public async Task<IActionResult> Delete(int id)
+          {
+              await _supplierRepository.DeleteAsync(id);
+              return NoContent();
+          }
+      }
+      ```
+
+75. **(8 pontos) Criar Procedure em MySQL para Relatório de Vendas**
+    - **Descrição**: Crie uma procedure em MySQL que gera um relatório de vendas.
+    - **Código**:
+      ```sql
+      DELIMITER //
+      CREATE PROCEDURE GetSalesReport()
+      BEGIN
+          SELECT p.Name, SUM(o.Quantity) AS TotalSold, SUM(o.Quantity * p.Price) AS TotalRevenue
+          FROM Orders o
+          JOIN Products p ON o.ProductId = p.Id
+          GROUP BY p.Name;
+      END //
+      DELIMITER ;
+      ```
+
+76. **(8 pontos) Criar Endpoint para Chamar Procedure de Relatório de Vendas**
+    - **Descrição**: Crie um endpoint para chamar a procedure `GetSalesReport` e retornar os resultados.
+    - **Código**:
+      ```csharp
+      [HttpGet("sales-report")]
+      public async Task<IActionResult> GetSalesReport()
+      {
+          var connectionString = _configuration.GetConnectionString("DefaultConnection");
+          using (var connection = new MySqlConnection(connectionString))
+          {
+              await connection.OpenAsync();
+              using (var command = new MySqlCommand("GetSalesReport", connection))
+              {
+                  command.CommandType = CommandType.StoredProcedure;
+                  using (var reader = await command.ExecuteReaderAsync())
+                  {
+                      var salesReport = new List<SalesReportDto>();
+                      while (await reader.ReadAsync())
+                      {
+                          salesReport.Add(new SalesReportDto
+                          {
+                              ProductName = reader.GetString("Name"),
+                              TotalSold = reader.GetInt32("TotalSold"),
+                              TotalRevenue = reader.GetDecimal("TotalRevenue")
+                          });
+                      }
+                      return Ok(salesReport);
+                  }
+              }
+          }
+      }
+      ```
+
+77. **(8 pontos) Criar Triggers para Atualização Automática de Estoque**
+    - **Descrição**: Crie triggers em MySQL para atualizar automaticamente o estoque quando um pedido for inserido ou deletado.
+    - **Código**:
+      ```sql
+      DELIMITER //
+      CREATE TRIGGER AfterOrderInsert
+      AFTER INSERT ON Orders
+      FOR EACH ROW
+      BEGIN
+          UPDATE Products
+          SET Stock = Stock - NEW.Quantity
+          WHERE Id = NEW.ProductId;
+      END //
+
+      CREATE TRIGGER AfterOrderDelete
+      AFTER DELETE ON Orders
+      FOR EACH ROW
+      BEGIN
+          UPDATE Products
+          SET Stock = Stock + OLD.Quantity
+          WHERE Id = OLD.ProductId;
+      END //
+      DELIMITER ;
+      ```
+
+78. **(13 pontos) Criar Dashboard de Vendas**
+    - **Descrição**: Implemente um endpoint que retorna dados para um dashboard de vendas, agregando informações relevantes.
+    - **Código**:
+      ```csharp
+      [HttpGet("dashboard-sales")]
+      public async Task<IActionResult> GetDashboardSalesData()
+      {
+          var dashboardData = new DashboardSalesDto
+          {
+              TotalSales = await _context.Orders.SumAsync(o => o.Quantity * o.Price),
+              TotalOrders = await _context.Orders.CountAsync(),
+              TopSellingProducts = await _context.Products
+                  .OrderByDescending(p => p.Orders.Sum(o => o.Quantity))
+                  .Take(5)
+                  .Select(p => new ProductSalesDto
+                  {
+                      ProductName = p.Name,
+                      TotalSold = p.Orders.Sum(o => o.Quantity)
+                  })
+                  .ToListAsync()
+          };
+
+          return Ok(dashboardData);
+      }
+      ```
+
+79. **(13 pontos) Implementar Funcionalidade de Busca por Fornecedores**
+    - **Descrição**: Adicione uma funcionalidade de busca avançada para fornecedores com filtros.
+    - **Código**:
+      ```csharp
+      [HttpGet("search")]
+      public async Task<ActionResult<IEnumerable<Supplier>>> SearchSuppliers([FromQuery] string name, [FromQuery] string contactEmail)
+      {
+          var suppliers = await _supplierRepository.SearchAsync(name, contactEmail);
+          return Ok(suppliers);
+      }
+      ```
+
+80. **(13 pontos) Criar Procedure em MySQL para Relatório de Estoque**
+    - **Descrição**: Crie uma procedure em MySQL que gera um relatório de estoque.
+    - **Código**:
+      ```sql
+      DELIMITER //
+      CREATE PROCEDURE GetStockReport()
+      BEGIN
+          SELECT p.Name, p.Stock
+          FROM Products p;
+      END //
+      DELIMITER ;
+      ```
+
+81. **(13 pontos) Criar Endpoint para Chamar Procedure de Relatório de Estoque**
+    - **Descrição**: Crie um endpoint para chamar a procedure `GetStockReport` e retornar os resultados.
+    - **Código**:
+      ```csharp
+      [HttpGet("stock-report")]
+      public async Task<IActionResult> GetStockReport()
+      {
+          var connectionString = _configuration.GetConnectionString("DefaultConnection");
+          using (var connection = new MySqlConnection(connectionString))
+          {
+              await connection.OpenAsync();
+              using (var command = new MySqlCommand("GetStockReport", connection))
+              {
+                  command.CommandType = CommandType.StoredProcedure;
+                  using (var reader = await command.ExecuteReaderAsync
+
+())
+                  {
+                      var stockReport = new List<StockReportDto>();
+                      while (await reader.ReadAsync())
+                      {
+                          stockReport.Add(new StockReportDto
+                          {
+                              ProductName = reader.GetString("Name"),
+                              Stock = reader.GetInt32("Stock")
+                          });
+                      }
+                      return Ok(stockReport);
+                  }
+              }
+          }
+      }
+      ```
+
+82. **(13 pontos) Implementar Sistema de Notificações Push**
+    - **Descrição**: Adicione suporte para notificações push, alertando os usuários sobre eventos importantes.
+    - **Código**:
+      ```csharp
+      public class PushNotificationService : IPushNotificationService
+      {
+          public async Task SendNotificationAsync(string message)
+          {
+              // Implementação do envio de notificações push
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IPushNotificationService, PushNotificationService>();
+      ```
+
+83. **(13 pontos) Criar Dashboard de Estoque**
+    - **Descrição**: Implemente um endpoint que retorna dados para um dashboard de estoque, agregando informações relevantes.
+    - **Código**:
+      ```csharp
+      [HttpGet("dashboard-stock")]
+      public async Task<IActionResult> GetDashboardStockData()
+      {
+          var dashboardData = new DashboardStockDto
+          {
+              TotalProducts = await _context.Products.CountAsync(),
+              TotalStockValue = await _context.Products.SumAsync(p => p.Stock * p.Price),
+              LowStockProducts = await _context.Products
+                  .Where(p => p.Stock < 10)
+                  .Select(p => new ProductStockDto
+                  {
+                      ProductName = p.Name,
+                      Stock = p.Stock
+                  })
+                  .ToListAsync()
+          };
+
+          return Ok(dashboardData);
+      }
+      ```
+
+84. **(13 pontos) Implementar Funcionalidade de Busca por Produtos**
+    - **Descrição**: Adicione uma funcionalidade de busca avançada para produtos com filtros.
+    - **Código**:
+      ```csharp
+      [HttpGet("search")]
+      public async Task<ActionResult<IEnumerable<Product>>> SearchProducts([FromQuery] string name, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
+      {
+          var products = await _productRepository.SearchAsync(name, minPrice, maxPrice);
+          return Ok(products);
+      }
+      ```
+
+85. **(21 pontos) Criar Procedure em MySQL para Relatório de Compras**
+    - **Descrição**: Crie uma procedure em MySQL que gera um relatório de compras.
+    - **Código**:
+      ```sql
+      DELIMITER //
+      CREATE PROCEDURE GetPurchaseReport()
+      BEGIN
+          SELECT s.Name AS SupplierName, SUM(p.Quantity) AS TotalPurchased
+          FROM Purchases p
+          JOIN Suppliers s ON p.SupplierId = s.Id
+          GROUP BY s.Name;
+      END //
+      DELIMITER ;
+      ```
+
+86. **(21 pontos) Criar Endpoint para Chamar Procedure de Relatório de Compras**
+    - **Descrição**: Crie um endpoint para chamar a procedure `GetPurchaseReport` e retornar os resultados.
+    - **Código**:
+      ```csharp
+      [HttpGet("purchase-report")]
+      public async Task<IActionResult> GetPurchaseReport()
+      {
+          var connectionString = _configuration.GetConnectionString("DefaultConnection");
+          using (var connection = new MySqlConnection(connectionString))
+          {
+              await connection.OpenAsync();
+              using (var command = new MySqlCommand("GetPurchaseReport", connection))
+              {
+                  command.CommandType = CommandType.StoredProcedure;
+                  using (var reader = await command.ExecuteReaderAsync())
+                  {
+                      var purchaseReport = new List<PurchaseReportDto>();
+                      while (await reader.ReadAsync())
+                      {
+                          purchaseReport.Add(new PurchaseReportDto
+                          {
+                              SupplierName = reader.GetString("SupplierName"),
+                              TotalPurchased = reader.GetInt32("TotalPurchased")
+                          });
+                      }
+                      return Ok(purchaseReport);
+                  }
+              }
+          }
+      }
+      ```
+
+87. **(21 pontos) Criar Trigger para Registro de Auditoria de Compras**
+    - **Descrição**: Crie um trigger em MySQL para registrar auditoria de compras.
+    - **Código**:
+      ```sql
+      DELIMITER //
+      CREATE TRIGGER AfterPurchaseInsert
+      AFTER INSERT ON Purchases
+      FOR EACH ROW
+      BEGIN
+          INSERT INTO PurchaseAudit (PurchaseId, SupplierId, Quantity, PurchaseDate)
+          VALUES (NEW.Id, NEW.SupplierId, NEW.Quantity, NEW.PurchaseDate);
+      END //
+      DELIMITER ;
+      ```
+
+88. **(21 pontos) Implementar Sistema de Cálculo de Impostos**
+    - **Descrição**: Adicione um sistema para calcular impostos sobre as vendas.
+    - **Código**:
+      ```csharp
+      public class TaxService : ITaxService
+      {
+          public decimal CalculateTax(decimal amount)
+          {
+              // Implementação do cálculo de impostos
+              return amount * 0.15M; // Exemplo de taxa de imposto de 15%
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ITaxService, TaxService>();
+      ```
+
+89. **(21 pontos) Criar Endpoint para Relatório de Impostos**
+    - **Descrição**: Implemente um endpoint para gerar um relatório de impostos sobre as vendas.
+    - **Código**:
+      ```csharp
+      [HttpGet("tax-report")]
+      public async Task<IActionResult> GetTaxReport()
+      {
+          var sales = await _context.Orders.ToListAsync();
+          var taxReport = sales.Select(s => new TaxReportDto
+          {
+              OrderId = s.Id,
+              TaxAmount = _taxService.CalculateTax(s.TotalAmount)
+          }).ToList();
+
+          return Ok(taxReport);
+      }
+      ```
+
+90. **(21 pontos) Criar Sistema de Descontos e Promoções**
+    - **Descrição**: Adicione um sistema para aplicar descontos e promoções nos produtos.
+    - **Código**:
+      ```csharp
+      public class DiscountService : IDiscountService
+      {
+          public decimal ApplyDiscount(decimal price, decimal discountPercentage)
+          {
+              return price - (price * discountPercentage / 100);
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IDiscountService, DiscountService>();
+      ```
+
+91. **(34 pontos) Implementar Integração com Serviço de Entrega**
+    - **Descrição**: Adicione integração com um serviço de entrega para calcular o frete e rastrear pedidos.
+    - **Código**:
+      ```csharp
+      public class DeliveryService : IDeliveryService
+      {
+          private readonly HttpClient _httpClient;
+
+          public DeliveryService(HttpClient httpClient)
+          {
+              _httpClient = httpClient;
+          }
+
+          public async Task<DeliveryInfo> GetDeliveryInfoAsync(string trackingNumber)
+          {
+              var response = await _httpClient.GetAsync($"https://api.delivery.com/track/{trackingNumber}");
+              response.EnsureSuccessStatusCode();
+
+              var content = await response.Content.ReadAsStringAsync();
+              var deliveryInfo = JsonConvert.DeserializeObject<DeliveryInfo>(content);
+
+              return deliveryInfo;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddHttpClient<IDeliveryService, DeliveryService>(client =>
+      {
+          client.BaseAddress = new Uri("https://api.delivery.com/");
+      });
+      ```
+
+92. **(34 pontos) Implementar Sistema de Reviews com Moderação**
+    - **Descrição**: Adicione um sistema para moderação de reviews dos produtos pelos clientes.
+    - **Código**:
+      ```csharp
+      public class ReviewModerationService : IReviewModerationService
+      {
+          public bool ModerateReview(string review)
+          {
+              // Implementação da moderação de reviews
+              return !review.Contains("inapropriado");
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IReviewModerationService, ReviewModerationService>();
+      ```
+
+93. **(34 pontos) Criar Dashboard de Compras**
+    - **Descrição**: Implemente um endpoint que retorna dados para um dashboard de compras, agregando informações relevantes.
+    - **Código**:
+      ```csharp
+      [HttpGet("dashboard-purchases")]
+      public async Task<IActionResult> GetDashboardPurchasesData()
+      {
+          var dashboardData = new DashboardPurchasesDto
+          {
+              TotalPurchases = await _context.Purchases.CountAsync(),
+              TotalSpent = await _context.Purchases.SumAsync(p => p.Quantity * p.Price),
+              TopSuppliers = await _context.Suppliers
+                  .OrderByDescending(s => s.Purchases.Sum(p => p.Quantity))
+                  .Take(5)
+                  .Select(s => new SupplierPurchasesDto
+                  {
+                      SupplierName = s.Name,
+                      TotalPurchased = s.Purchases.Sum(p => p.Quantity)
+                  })
+                  .ToListAsync()
+          };
+
+          return Ok(dashboardData);
+      }
+      ```
+
+94. **(34 pontos) Implementar Sistema de Alertas Personalizados**
+    - **Descrição**: Adicione um sistema para alertar os usuários sobre eventos importantes personalizados.
+    - **Código**:
+      ```csharp
+      public class AlertService : IAlertService
+      {
+          public async Task SendAlertAsync(string userId, string message)
+          {
+              // Implementação do envio de alertas personalizados
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IAlertService, AlertService>();
+      ```
+
+95. **(34 pontos) Criar Procedure em MySQL para Relatório de Lucros**
+    - **Descrição**: Crie uma procedure em MySQL que gera um relatório
+
+
+
+ de lucros.
+    - **Código**:
+      ```sql
+      DELIMITER //
+      CREATE PROCEDURE GetProfitReport()
+      BEGIN
+          SELECT p.Name, SUM(o.Quantity * (o.Price - p.Cost)) AS TotalProfit
+          FROM Orders o
+          JOIN Products p ON o.ProductId = p.Id
+          GROUP BY p.Name;
+      END //
+      DELIMITER ;
+      ```
+
+96. **(34 pontos) Criar Endpoint para Chamar Procedure de Relatório de Lucros**
+    - **Descrição**: Crie um endpoint para chamar a procedure `GetProfitReport` e retornar os resultados.
+    - **Código**:
+      ```csharp
+      [HttpGet("profit-report")]
+      public async Task<IActionResult> GetProfitReport()
+      {
+          var connectionString = _configuration.GetConnectionString("DefaultConnection");
+          using (var connection = new MySqlConnection(connectionString))
+          {
+              await connection.OpenAsync();
+              using (var command = new MySqlCommand("GetProfitReport", connection))
+              {
+                  command.CommandType = CommandType.StoredProcedure;
+                  using (var reader = await command.ExecuteReaderAsync())
+                  {
+                      var profitReport = new List<ProfitReportDto>();
+                      while (await reader.ReadAsync())
+                      {
+                          profitReport.Add(new ProfitReportDto
+                          {
+                              ProductName = reader.GetString("Name"),
+                              TotalProfit = reader.GetDecimal("TotalProfit")
+                          });
+                      }
+                      return Ok(profitReport);
+                  }
+              }
+          }
+      }
+      ```
+
+97. **(34 pontos) Implementar Sistema de Feedback por SMS**
+    - **Descrição**: Adicione um sistema para coletar feedback dos clientes via SMS.
+    - **Código**:
+      ```csharp
+      public class SmsFeedbackService : ISmsFeedbackService
+      {
+          private readonly ISmsService _smsService;
+
+          public SmsFeedbackService(ISmsService smsService)
+          {
+              _smsService = smsService;
+          }
+
+          public async Task CollectFeedbackAsync(string phoneNumber, string feedback)
+          {
+              // Implementação da coleta de feedback via SMS
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ISmsFeedbackService, SmsFeedbackService>();
+      ```
+
+98. **(34 pontos) Implementar Sistema de Análise de Tendências de Mercado**
+    - **Descrição**: Adicione um sistema para análise de tendências de mercado, auxiliando na tomada de decisões estratégicas.
+    - **Código**:
+      ```csharp
+      public class MarketTrendAnalysisService : IMarketTrendAnalysisService
+      {
+          public async Task<MarketTrendDto> AnalyzeTrendsAsync()
+          {
+              // Implementação da análise de tendências de mercado
+              return new MarketTrendDto
+              {
+                  Trend = "Aumento nas vendas de produtos eletrônicos",
+                  Prediction = "Crescimento de 15% nas próximas semanas"
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IMarketTrendAnalysisService, MarketTrendAnalysisService>();
+      ```
+
+99. **(34 pontos) Implementar Funcionalidade de Devolução de Produtos**
+    - **Descrição**: Adicione um sistema para gerenciar a devolução de produtos.
+    - **Código**:
+      ```csharp
+      [HttpPost("return")]
+      public async Task<IActionResult> ReturnProduct(ReturnProductDto returnProductDto)
+      {
+          var order = await _context.Orders.FindAsync(returnProductDto.OrderId);
+          if (order == null)
+          {
+              return NotFound("Order not found");
+          }
+
+          // Processar devolução de produto
+          return Ok();
+      }
+      ```
+
+100. **(34 pontos) Implementar Integração com Sistema de CRM**
+    - **Descrição**: Adicione integração com um sistema CRM para sincronizar dados de clientes.
+    - **Código**:
+      ```csharp
+      public class CrmIntegrationService : ICrmIntegrationService
+      {
+          private readonly HttpClient _httpClient;
+
+          public CrmIntegrationService(HttpClient httpClient)
+          {
+              _httpClient = httpClient;
+          }
+
+          public async Task SyncCustomerDataAsync()
+          {
+              var response = await _httpClient.GetAsync("https://api.crm.com/customers");
+              response.EnsureSuccessStatusCode();
+
+              var content = await response.Content.ReadAsStringAsync();
+              var customers = JsonConvert.DeserializeObject<List<Customer>>(content);
+
+              // Sincronizar dados de clientes com o banco de dados local
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddHttpClient<ICrmIntegrationService, CrmIntegrationService>(client =>
+      {
+          client.BaseAddress = new Uri("https://api.crm.com/");
+      });
+      ```
+
+101. **(34 pontos) Criar Sistema de Feedback Anônimo**
+    - **Descrição**: Adicione um sistema para coletar feedback anônimo dos clientes.
+    - **Código**:
+      ```csharp
+      public class AnonymousFeedbackService : IAnonymousFeedbackService
+      {
+          public async Task CollectFeedbackAsync(string feedback)
+          {
+              // Implementação da coleta de feedback anônimo
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IAnonymousFeedbackService, AnonymousFeedbackService>();
+      ```
+
+102. **(34 pontos) Implementar Sistema de Métricas de Performance**
+    - **Descrição**: Adicione um sistema para medir e monitorar a performance do sistema.
+    - **Código**:
+      ```csharp
+      public class PerformanceMetricsService : IPerformanceMetricsService
+      {
+          public async Task<PerformanceMetricsDto> GetMetricsAsync()
+          {
+              // Implementação da coleta de métricas de performance
+              return new PerformanceMetricsDto
+              {
+                  CpuUsage = 75.5,
+                  MemoryUsage = 2048,
+                  ResponseTime = 250
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IPerformanceMetricsService, PerformanceMetricsService>();
+      ```
+
+103. **(34 pontos) Implementar Sistema de Backup em Nuvem**
+    - **Descrição**: Adicione um sistema para backup em nuvem, garantindo a segurança dos dados.
+    - **Código**:
+      ```csharp
+      public class CloudBackupService : ICloudBackupService
+      {
+          public async Task PerformBackupAsync()
+          {
+              // Implementação do backup em nuvem
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ICloudBackupService, CloudBackupService>();
+      ```
+
+104. **(34 pontos) Implementar Sistema de Análise de Desempenho de Vendas**
+    - **Descrição**: Adicione um sistema para análise detalhada do desempenho de vendas.
+    - **Código**:
+      ```csharp
+      public class SalesPerformanceAnalysisService : ISalesPerformanceAnalysisService
+      {
+          public async Task<SalesPerformanceDto> AnalyzePerformanceAsync()
+          {
+              // Implementação da análise de desempenho de vendas
+              return new SalesPerformanceDto
+              {
+                  TotalSales = 10000,
+                  TotalOrders = 200,
+                  AverageOrderValue = 50
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ISalesPerformanceAnalysisService, SalesPerformanceAnalysisService>();
+      ```
+
+105. **(34 pontos) Implementar Integração com Serviço de Análise de Dados**
+    - **Descrição**: Adicione integração com um serviço de análise de dados para gerar insights e relatórios avançados.
+    - **Código**:
+      ```csharp
+      public class DataAnalysisService : IDataAnalysisService
+      {
+          private readonly HttpClient _httpClient;
+
+          public DataAnalysisService(HttpClient httpClient)
+          {
+              _httpClient = httpClient;
+          }
+
+          public async Task<DataAnalysisDto> AnalyzeDataAsync()
+          {
+              var response = await _httpClient.GetAsync("https://api.dataanalysis.com/analyze");
+              response.EnsureSuccessStatusCode();
+
+              var content = await response.Content.ReadAsStringAsync();
+              var analysis = JsonConvert.DeserializeObject<DataAnalysisDto>(content);
+
+              return analysis;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddHttpClient<IDataAnalysisService, DataAnalysisService>(client =>
+      {
+          client.BaseAddress = new Uri("https://api.dataanalysis.com/");
+      });
+      ```
+
+106. **(34 pontos) Implementar Sistema de Prevenção de Fraude**
+    - **Descrição**: Adicione um sistema para detectar e prevenir fraudes nas transações.
+    - **Código**:
+      ```csharp
+      public class FraudDetectionService : IFraudDetectionService
+      {
+          public async Task<bool> DetectFraudAsync(TransactionDto transaction)
+          {
+              // Implementação da detecção de fraudes
+              return transaction.Amount > 1000; // Exemplo de detecção de fraude
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IFraudDetectionService, FraudDetectionService>();
+      ```
+
+107. **(34 pontos) Implementar Sistema de Gestão de Inventário em Tempo Real**
+    - **Descrição**: Adicione um sistema para gestão de inventário em tempo real, atualizando instantaneamente as quantidades de produtos.
+    - **Código**:
+      ```csharp
+      public class RealTimeInventoryService : IRealTimeInventoryService
+      {
+          public async Task UpdateInventoryAsync(int productId, int quantity)
+          {
+              // Implementação da atualização de inventário em tempo real
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IRealTimeInventoryService, RealTimeInventoryService>();
+      ```
+
+108. **(34 pontos) Implementar Sistema de Relatórios Personalizados**
+    - **Descrição**: Adicione um sistema para que os
+
+ usuários possam criar e visualizar relatórios personalizados.
+    - **Código**:
+      ```csharp
+      public class CustomReportService : ICustomReportService
+      {
+          public async Task<CustomReportDto> GenerateReportAsync(ReportParametersDto parameters)
+          {
+              // Implementação da geração de relatórios personalizados
+              return new CustomReportDto
+              {
+                  Title = "Relatório Personalizado",
+                  Data = new List<ReportDataDto>
+                  {
+                      new ReportDataDto { Key = "TotalVendas", Value = "10000" },
+                      new ReportDataDto { Key = "TotalPedidos", Value = "200" }
+                  }
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ICustomReportService, CustomReportService>();
+      ```
+
+109. **(34 pontos) Implementar Sistema de Gestão de Projetos**
+    - **Descrição**: Adicione um sistema para gerenciar projetos internos da empresa, incluindo tarefas e cronogramas.
+    - **Código**:
+      ```csharp
+      public class ProjectManagementService : IProjectManagementService
+      {
+          public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto)
+          {
+              // Implementação da criação de projetos
+              return new ProjectDto
+              {
+                  Id = 1,
+                  Name = createProjectDto.Name,
+                  Description = createProjectDto.Description,
+                  StartDate = createProjectDto.StartDate,
+                  EndDate = createProjectDto.EndDate
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IProjectManagementService, ProjectManagementService>();
+      ```
+
+110. **(34 pontos) Implementar Sistema de Gestão de Recursos Humanos**
+    - **Descrição**: Adicione um sistema para gerenciar informações e processos relacionados a recursos humanos.
+    - **Código**:
+      ```csharp
+      public class HumanResourcesService : IHumanResourcesService
+      {
+          public async Task<EmployeeDto> AddEmployeeAsync(CreateEmployeeDto createEmployeeDto)
+          {
+              // Implementação da adição de funcionários
+              return new EmployeeDto
+              {
+                  Id = 1,
+                  Name = createEmployeeDto.Name,
+                  Position = createEmployeeDto.Position,
+                  Salary = createEmployeeDto.Salary,
+                  HireDate = createEmployeeDto.HireDate
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IHumanResourcesService, HumanResourcesService>();
+      ```
+
+111. **(34 pontos) Implementar Integração com Serviço de Pagamentos Externo**
+    - **Descrição**: Adicione integração com um serviço de pagamentos externo para processar transações.
+    - **Código**:
+      ```csharp
+      public class PaymentIntegrationService : IPaymentIntegrationService
+      {
+          private readonly HttpClient _httpClient;
+
+          public PaymentIntegrationService(HttpClient httpClient)
+          {
+              _httpClient = httpClient;
+          }
+
+          public async Task<PaymentResultDto> ProcessPaymentAsync(PaymentRequestDto paymentRequest)
+          {
+              var response = await _httpClient.PostAsJsonAsync("https://api.payment.com/process", paymentRequest);
+              response.EnsureSuccessStatusCode();
+
+              var content = await response.Content.ReadAsStringAsync();
+              var paymentResult = JsonConvert.DeserializeObject<PaymentResultDto>(content);
+
+              return paymentResult;
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddHttpClient<IPaymentIntegrationService, PaymentIntegrationService>(client =>
+      {
+          client.BaseAddress = new Uri("https://api.payment.com/");
+      });
+      ```
+
+112. **(34 pontos) Implementar Sistema de Rastreamento de Entregas**
+    - **Descrição**: Adicione um sistema para rastrear as entregas dos pedidos dos clientes.
+    - **Código**:
+      ```csharp
+      [HttpGet("track-delivery/{trackingNumber}")]
+      public async Task<IActionResult> TrackDelivery(string trackingNumber)
+      {
+          var deliveryInfo = await _deliveryService.GetDeliveryInfoAsync(trackingNumber);
+          if (deliveryInfo == null)
+          {
+              return NotFound("Delivery not found");
+          }
+          return Ok(deliveryInfo);
+      }
+      ```
+
+113. **(34 pontos) Implementar Sistema de Gestão de Inventário**
+    - **Descrição**: Adicione um sistema para gerenciar o inventário, incluindo adição, remoção e atualização de produtos.
+    - **Código**:
+      ```csharp
+      public class InventoryManagementService : IInventoryManagementService
+      {
+          public async Task AddProductAsync(ProductDto product)
+          {
+              // Implementação da adição de produto ao inventário
+          }
+
+          public async Task RemoveProductAsync(int productId)
+          {
+              // Implementação da remoção de produto do inventário
+          }
+
+          public async Task UpdateProductAsync(ProductDto product)
+          {
+              // Implementação da atualização de produto no inventário
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IInventoryManagementService, InventoryManagementService>();
+      ```
+
+114. **(34 pontos) Implementar Sistema de Gestão de Fornecedores**
+    - **Descrição**: Adicione um sistema para gerenciar os fornecedores da empresa, incluindo contratos e avaliações.
+    - **Código**:
+      ```csharp
+      public class SupplierManagementService : ISupplierManagementService
+      {
+          public async Task<SupplierDto> AddSupplierAsync(CreateSupplierDto createSupplierDto)
+          {
+              // Implementação da adição de fornecedores
+              return new SupplierDto
+              {
+                  Id = 1,
+                  Name = createSupplierDto.Name,
+                  ContactEmail = createSupplierDto.ContactEmail,
+                  PhoneNumber = createSupplierDto.PhoneNumber
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ISupplierManagementService, SupplierManagementService>();
+      ```
+
+115. **(34 pontos) Implementar Sistema de Planejamento de Demanda**
+    - **Descrição**: Adicione um sistema para planejamento de demanda, prevendo necessidades futuras com base em dados históricos.
+    - **Código**:
+      ```csharp
+      public class DemandPlanningService : IDemandPlanningService
+      {
+          public async Task<DemandForecastDto> ForecastDemandAsync()
+          {
+              // Implementação do planejamento de demanda
+              return new DemandForecastDto
+              {
+                  ProductId = 1,
+                  ForecastedDemand = 100
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IDemandPlanningService, DemandPlanningService>();
+      ```
+
+116. **(34 pontos) Implementar Sistema de Gestão de Relacionamento com Clientes**
+    - **Descrição**: Adicione um sistema para gerenciar o relacionamento com clientes, incluindo histórico de interações e preferências.
+    - **Código**:
+      ```csharp
+      public class CustomerRelationshipManagementService : ICustomerRelationshipManagementService
+      {
+          public async Task<CustomerDto> AddCustomerAsync(CreateCustomerDto createCustomerDto)
+          {
+              // Implementação da adição de clientes
+              return new CustomerDto
+              {
+                  Id = 1,
+                  Name = createCustomerDto.Name,
+                  Email = createCustomerDto.Email,
+                  PhoneNumber = createCustomerDto.PhoneNumber
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ICustomerRelationshipManagementService, CustomerRelationshipManagementService>();
+      ```
+
+117. **(34 pontos) Implementar Sistema de Gestão de Contratos**
+    - **Descrição**: Adicione um sistema para gerenciar contratos com fornecedores e clientes, incluindo renovação e expiração.
+    - **Código**:
+      ```csharp
+      public class ContractManagementService : IContractManagementService
+      {
+          public async Task<ContractDto> AddContractAsync(CreateContractDto createContractDto)
+          {
+              // Implementação da adição de contratos
+              return new ContractDto
+              {
+                  Id = 1,
+                  SupplierId = createContractDto.SupplierId,
+                  StartDate = createContractDto.StartDate,
+                  EndDate = createContractDto.EndDate,
+                  Terms = createContractDto.Terms
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IContractManagementService, ContractManagementService>();
+      ```
+
+118. **(34 pontos) Implementar Sistema de Avaliação de Desempenho de Funcionários**
+    - **Descrição**: Adicione um sistema para avaliar o desempenho dos funcionários, incluindo feedback e metas.
+    - **Código**:
+      ```csharp
+      public class EmployeePerformanceEvaluationService : IEmployeePerformanceEvaluationService
+      {
+          public async Task<EmployeeEvaluationDto> EvaluatePerformanceAsync(int employeeId)
+          {
+              // Implementação da avaliação de desempenho de funcionários
+              return new EmployeeEvaluationDto
+              {
+                  EmployeeId = employeeId,
+                  EvaluationScore = 85,
+                  Feedback = "Excelente desempenho"
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IEmployeePerformanceEvaluationService, EmployeePerformanceEvaluationService>();
+      ```
+
+119. **(34 pontos) Implementar Sistema de Análise de Viabilidade de Projetos**
+    - **Descrição**: Adicione um sistema para análise de viabilidade de novos projetos, incluindo custo-benefício e riscos.
+    - **Código**:
+      ```csharp
+      public class ProjectFeasibilityAnalysisService : IProjectFeasibilityAnalysisService
+      {
+          public async Task<ProjectFeasibilityDto> AnalyzeFeasibilityAsync(int projectId)
+          {
+              // Implementação da análise de viabilidade de projetos
+              return new ProjectFeasibilityDto
+              {
+                  ProjectId = projectId,
+                  FeasibilityScore = 90,
+                  Comments = "Projeto viável com alta taxa de retorno"
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+
+
+      builder.Services.AddSingleton<IProjectFeasibilityAnalysisService, ProjectFeasibilityAnalysisService>();
+      ```
+
+120. **(34 pontos) Implementar Sistema de Planejamento de Produção**
+    - **Descrição**: Adicione um sistema para planejamento de produção, otimizando recursos e tempo.
+    - **Código**:
+      ```csharp
+      public class ProductionPlanningService : IProductionPlanningService
+      {
+          public async Task<ProductionPlanDto> CreateProductionPlanAsync(CreateProductionPlanDto createProductionPlanDto)
+          {
+              // Implementação do planejamento de produção
+              return new ProductionPlanDto
+              {
+                  PlanId = 1,
+                  StartDate = createProductionPlanDto.StartDate,
+                  EndDate = createProductionPlanDto.EndDate,
+                  ResourcesRequired = createProductionPlanDto.ResourcesRequired
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IProductionPlanningService, ProductionPlanningService>();
+      ```
+
+121. **(34 pontos) Implementar Sistema de Automação de Processos**
+    - **Descrição**: Adicione um sistema para automação de processos empresariais, reduzindo trabalho manual e aumentando a eficiência.
+    - **Código**:
+      ```csharp
+      public class ProcessAutomationService : IProcessAutomationService
+      {
+          public async Task AutomateProcessAsync(ProcessDto process)
+          {
+              // Implementação da automação de processos
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IProcessAutomationService, ProcessAutomationService>();
+      ```
+
+122. **(34 pontos) Implementar Sistema de Monitoramento de Qualidade**
+    - **Descrição**: Adicione um sistema para monitoramento de qualidade dos produtos, incluindo inspeções e testes.
+    - **Código**:
+      ```csharp
+      public class QualityMonitoringService : IQualityMonitoringService
+      {
+          public async Task<QualityReportDto> MonitorQualityAsync(int productId)
+          {
+              // Implementação do monitoramento de qualidade
+              return new QualityReportDto
+              {
+                  ProductId = productId,
+                  QualityScore = 95,
+                  Comments = "Produto de alta qualidade"
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IQualityMonitoringService, QualityMonitoringService>();
+      ```
+
+123. **(34 pontos) Implementar Sistema de Gestão de Recursos Financeiros**
+    - **Descrição**: Adicione um sistema para gerenciar recursos financeiros, incluindo orçamento e despesas.
+    - **Código**:
+      ```csharp
+      public class FinancialManagementService : IFinancialManagementService
+      {
+          public async Task<FinancialReportDto> GenerateReportAsync()
+          {
+              // Implementação da geração de relatórios financeiros
+              return new FinancialReportDto
+              {
+                  TotalIncome = 100000,
+                  TotalExpenses = 50000,
+                  NetProfit = 50000
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<IFinancialManagementService, FinancialManagementService>();
+      ```
+
+124. **(34 pontos) Implementar Sistema de Análise de Competitividade**
+    - **Descrição**: Adicione um sistema para analisar a competitividade da empresa, comparando com concorrentes.
+    - **Código**:
+      ```csharp
+      public class CompetitivenessAnalysisService : ICompetitivenessAnalysisService
+      {
+          public async Task<CompetitivenessReportDto> AnalyzeCompetitivenessAsync()
+          {
+              // Implementação da análise de competitividade
+              return new CompetitivenessReportDto
+              {
+                  CompanyScore = 85,
+                  CompetitorScore = 80,
+                  CompetitiveEdge = 5
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ICompetitivenessAnalysisService, CompetitivenessAnalysisService>();
+      ```
+
+125. **(34 pontos) Implementar Sistema de Gestão de Relacionamento com Fornecedores**
+    - **Descrição**: Adicione um sistema para gerenciar o relacionamento com fornecedores, incluindo avaliação de desempenho e renovação de contratos.
+    - **Código**:
+      ```csharp
+      public class SupplierRelationshipManagementService : ISupplierRelationshipManagementService
+      {
+          public async Task<SupplierDto> EvaluateSupplierAsync(int supplierId)
+          {
+              // Implementação da avaliação de fornecedores
+              return new SupplierDto
+              {
+                  Id = supplierId,
+                  Name = "Fornecedor Exemplo",
+                  EvaluationScore = 90
+              };
+          }
+      }
+
+      // Configuração no Program.cs
+      builder.Services.AddSingleton<ISupplierRelationshipManagementService, SupplierRelationshipManagementService>();
+      ```
