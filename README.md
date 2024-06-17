@@ -250,6 +250,68 @@ Neste diagrama:
 
 45. **Sistema de Feedback com Análise de Sentimento**:
     - **Tarefa 70**: Adiciona um sistema de feedback para clientes com análise de sentimento para avaliar a satisfação.
+   
+
+46. **Nova Classe e Repositório de Fornecedores**:
+   - **Tarefas 71-74**: Introdução da classe `Supplier`, interface de repositório, implementação do repositório e criação do controlador `SuppliersController`. Essas tarefas ajudam na gestão de fornecedores.
+
+47. **Procedures e Endpoints em MySQL**:
+   - **Tarefas 75-76, 80-81, 85-86, 95-96**: Criação de procedures para relatórios de vendas, estoque, compras e lucros, além de endpoints para chamar essas procedures. Isso facilita a geração de relatórios e análise de dados.
+
+48. **Triggers em MySQL**:
+   - **Tarefa 77**: Criação de triggers para atualização automática de estoque, melhorando a integridade e a automação dos dados.
+
+49. **Dashboards de Vendas e Estoque**:
+   - **Tarefas 78, 83, 93**: Implementação de endpoints que retornam dados para dashboards de vendas, estoque e compras, agregando informações relevantes para a visualização e análise.
+
+50. **Funcionalidade de Busca Avançada**:
+   - **Tarefas 79, 84**: Adição de funcionalidades de busca avançada para fornecedores e produtos, incluindo filtros.
+
+51. **Notificações e Alertas**:
+   - **Tarefas 82, 94**: Implementação de sistemas de notificações push e alertas personalizados, melhorando a comunicação com os usuários.
+
+52. **Relatórios de Impostos e Sistema de Cálculo de Impostos**:
+   - **Tarefas 88-89**: Adição de um sistema de cálculo de impostos e um endpoint para gerar relatórios de impostos, auxiliando na conformidade fiscal.
+
+53. **Sistema de Descontos e Promoções**:
+   - **Tarefa 90**: Implementação de um sistema para aplicar descontos e promoções, incentivando as vendas.
+
+54. **Integração com Serviços Externos**:
+   - **Tarefas 91, 100, 111**: Integração com serviços de entrega, CRM e pagamentos externos, expandindo a funcionalidade do sistema.
+
+55. **Moderação de Reviews**:
+    - **Tarefa 92**: Implementação de um sistema para moderação de reviews dos produtos pelos clientes, mantendo a qualidade dos comentários.
+
+56. **Feedback via SMS e Sistema de Feedback Anônimo**:
+    - **Tarefas 97, 101**: Adição de sistemas para coleta de feedback via SMS e feedback anônimo, proporcionando mais canais de comunicação com os clientes.
+
+57. **Análise de Tendências de Mercado**:
+    - **Tarefa 98**: Implementação de um sistema para análise de tendências de mercado, auxiliando na tomada de decisões estratégicas.
+
+58. **Sistema de Devolução de Produtos**:
+    - **Tarefa 99**: Adição de um sistema para gerenciar a devolução de produtos, melhorando a experiência do cliente.
+
+59. **Métricas de Performance e Monitoramento de Qualidade**:
+    - **Tarefas 102, 122**: Implementação de sistemas para medir e monitorar a performance do sistema e a qualidade dos produtos.
+
+60. **Backup em Nuvem e Gestão de Recursos Financeiros**:
+    - **Tarefas 103, 123**: Adição de um sistema para backup em nuvem e gerenciamento de recursos financeiros, garantindo a segurança dos dados e a saúde financeira.
+
+61. **Automação de Processos e Planejamento de Produção**:
+    - **Tarefas 121, 120**: Implementação de sistemas para automação de processos empresariais e planejamento de produção, aumentando a eficiência operacional.
+
+62. **Rastreamento de Entregas e Gestão de Inventário em Tempo Real**:
+    - **Tarefas 112, 107**: Adição de sistemas para rastrear as entregas dos pedidos dos clientes e gestão de inventário em tempo real, proporcionando atualizações instantâneas das quantidades de produtos.
+
+63. **Relatórios Personalizados e Gestão de Relacionamento com Clientes**:
+    - **Tarefas 108, 116**: Implementação de sistemas para criação e visualização de relatórios personalizados e gerenciamento do relacionamento com clientes.
+
+64. **Análise de Competitividade e Gestão de Contratos**:
+    - **Tarefas 124, 117**: Adição de sistemas para análise de competitividade e gestão de contratos com fornecedores e clientes.
+
+65. **Avaliação de Desempenho de Funcionários e Viabilidade de Projetos**:
+    - **Tarefas 118, 119**: Implementação de sistemas para avaliação de desempenho dos funcionários e análise de viabilidade de novos projetos.
+
 
 # Tarefas para Avaliação:
 
