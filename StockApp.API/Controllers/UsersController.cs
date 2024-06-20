@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using StockApp.Application.DTOs;
 
 namespace StockApp.API.Controllers
 {
@@ -17,6 +18,7 @@ namespace StockApp.API.Controllers
             _userRepository = userRepository;
         }
 
+        [Authorize(Policy = "adminPolicy")]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDTO userRegisterDto)
         {
