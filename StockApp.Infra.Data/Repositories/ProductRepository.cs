@@ -13,6 +13,14 @@ namespace StockApp.Infra.Data.Repositories
             _productContext = context;
         }
 
+        public async Task<IEnumerable<Product>> GetAllAsync(int pageNumber, int pageSize)
+        {
+            return await _productContext.Products
+                .Skip(pageNumber).Take(pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
         public async Task<Product> Create(Product product)
         {
             _productContext.Add(product);

@@ -10,6 +10,7 @@ namespace StockApp.Domain.Interfaces
     public interface IProductRepository
     {
         Task<IEnumerable<Product>> GetProducts();
+        Task<IEnumerable<Product>> GetAllAsync(int pageNumber, int pageSize);
 
         Task<Product> GetById(int? id);
         Task<Product> Create(Product product);
