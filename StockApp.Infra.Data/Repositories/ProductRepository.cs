@@ -18,6 +18,25 @@ namespace StockApp.Infra.Data.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        public async Task BulkUpdateAsync(List<Product> products)
+        {
+            if (products == null || !products.Any())
+                throw new ArgumentException("Product list cannot be null or empty", nameof(products));
+
+            foreach (var product in products)
+            {
+                var existingProduct = await _context.Products.FindAsync(product.Id);
+                if (existingProduct != null)
+                {
+                    existingProduct.Name = product.Name;
+                    existingProduct.Description = product.Description;
+                    existingProduct.Price = product.Price;
+                    existingProduct.Stock = product.Stock;
+                    existingProduct.Image = product.Image;
+                }
+            }
+        }
+
         public async Task<IEnumerable<Product>> GetLowStockAsync(int threshold)
         {
             return await _context.Products

@@ -101,5 +101,17 @@ namespace StockApp.API.Controllers
             var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
             return Ok(products);
         }
+
+        [HttpPut("bulk-update", Name = "BulkUpdateProducts")]
+        public async Task<IActionResult> BulkUpdate([FromBody] List<Product> products)
+        {
+            if (products == null || !products.Any())
+            {
+                return BadRequest("Invalid product data");
+            }
+
+            await _productRepository.BulkUpdateAsync(products);
+            return NoContent();
+        }
     }
 }
