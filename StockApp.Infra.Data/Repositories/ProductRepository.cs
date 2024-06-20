@@ -132,5 +132,42 @@ namespace StockApp.Infra.Data.Repositories
 
             return value;
         }
+
+        public async Task<IEnumerable<Product>> SearchAsync(string query, string sortBy, bool descending)
+        {
+            IQueryable<Product> queryable = _context.Products;
+
+            if (!string.IsNullOrEmpty(query))
+            {
+                queryable = queryable.Where(p =>
+                    p.Name.Contains(query) ||
+                    p.Description.Contains(query));
+            }
+
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                switch (sortBy.ToLower())
+                {
+                    case "name":
+                        queryable = descending ? queryable.OrderByDescending(p => p.Name) : queryable.OrderBy(p => p.Name);
+                        break;
+                    case "price":
+                        queryable = descending ? queryable.OrderByDescending(p => p.Price) : queryable.OrderBy(p => p.Price);
+                        break;
+                    case "stock":
+                        queryable = descending ? queryable.OrderByDescending(p => p.Stock) : queryable.OrderBy(p => p.Stock);
+                        break;
+                    default:
+                        queryable = descending ? queryable.OrderByDescending(p => p.Id) : queryable.OrderBy(p => p.Id);
+                        break;
+                }
+            }
+            else
+            {
+                queryable = queryable.OrderBy(p => p.Id);
+            }
+
+            return await queryable.ToListAsync();
+        }
     }
 }
