@@ -4,6 +4,8 @@ using StockApp.Domain.Interfaces;
 using StockApp.Application.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using StockApp.Application.DTOs;
 
@@ -179,6 +181,44 @@ namespace StockApp.Web.Controllers
         {
             var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
             return Ok(products);
+        }
+
+        [HttpGet("export")]
+        public async Task<IActionResult> ExportToCsv()
+        {
+            try
+            {
+                var products = await _productRepository.GetProducts(); 
+                var csv = new StringBuilder();
+                csv.AppendLine("Id,Name,Description,Price,Stock");
+
+                foreach (var product in products)
+                {
+                    csv.AppendLine($"{product.Id},{EscapeForCsv(product.Name)},{EscapeForCsv(product.Description)},{product.Price},{product.Stock}");
+                }
+
+                return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", "products.csv");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Error exporting products: " + ex.Message);
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+
+        private string EscapeForCsv(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+
+            if (value.Contains("\""))
+                value = value.Replace("\"", "\"\"");
+
+            if (value.Contains(","))
+                value = $"\"{value}\"";
+
+            return value;
         }
 
     }
