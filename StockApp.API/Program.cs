@@ -1,14 +1,25 @@
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+
         builder.Services.AddControllers();
+
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
 
@@ -50,16 +61,15 @@ internal class Program
             c.AddSecurityDefinition("Bearer", securitySchema);
 
             var securityRequirement = new OpenApiSecurityRequirement
-    {
-        { securitySchema, new[] { "Bearer" } }
-    };
+            {
+                { securitySchema, new[] { "Bearer" } }
+            };
 
             c.AddSecurityRequirement(securityRequirement);
         });
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
@@ -72,8 +82,9 @@ internal class Program
 
         app.UseHttpsRedirection();
         app.UseRouting();
+        app.UseCors("AllowAll");
 
-        app.UseAuthentication();   
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
