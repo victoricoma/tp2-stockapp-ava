@@ -21,8 +21,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        var configuration = builder.Configuration;
 
+        var configuration = builder.Configuration;
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowAll", builder =>
@@ -33,15 +33,14 @@ public class Program
             });
         });
 
-
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = configuration.GetConnectionString("Redis");
         });
-
         builder.Services.AddControllers();
 
         var jwtSettings = configuration.GetSection("JwtSettings");
+        var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -74,6 +73,9 @@ public class Program
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IAuthService, AuthService>();
 
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -104,14 +106,13 @@ public class Program
         });
 
         var app = builder.Build();
-
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
         }
         else
         {
-            app.UseExceptionHandler("/Error");
+            app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseHsts();
         }
 
