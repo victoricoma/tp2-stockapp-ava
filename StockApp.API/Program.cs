@@ -50,16 +50,15 @@ internal class Program
             c.AddSecurityDefinition("Bearer", securitySchema);
 
             var securityRequirement = new OpenApiSecurityRequirement
-    {
-        { securitySchema, new[] { "Bearer" } }
-    };
+            {
+                { securitySchema, new[] { "Bearer" } }
+            };
 
             c.AddSecurityRequirement(securityRequirement);
         });
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
@@ -73,10 +72,19 @@ internal class Program
         app.UseHttpsRedirection();
         app.UseRouting();
 
-        app.UseAuthentication();   
+        app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapControllers();
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
+
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        });
 
         app.Run();
     }
