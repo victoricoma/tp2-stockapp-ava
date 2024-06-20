@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
+using StockApp.Application.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StockApp.Web.Controllers
@@ -12,10 +11,12 @@ namespace StockApp.Web.Controllers
     public class ProductsController : Controller
     {
         private readonly IProductRepository _productRepository;
+        private readonly IInventoryService _inventoryService;
 
-        public ProductsController(IProductRepository productRepository)
+        public ProductsController(IProductRepository productRepository, IInventoryService inventoryService)
         {
-            _productRepository = productRepository;
+            _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+            _inventoryService = inventoryService ?? throw new ArgumentNullException(nameof(inventoryService));
         }
 
         public async Task<IActionResult> Index()
@@ -73,7 +74,6 @@ namespace StockApp.Web.Controllers
             return View(product);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Product product)
@@ -124,6 +124,22 @@ namespace StockApp.Web.Controllers
         {
             var products = await _productRepository.GetLowStockAsync(threshold);
             return Ok(products);
+        }
+
+        [HttpPost("replenish-stock")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReplenishStock()
+        {
+            try
+            {
+                await _inventoryService.ReplenishStockAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Error replenishing stock: " + ex.Message);
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }
