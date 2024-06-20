@@ -39,7 +39,6 @@ public class Program
         });
         builder.Services.AddControllers();
 
-        var jwtSettings = configuration.GetSection("JwtSettings");
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
 
