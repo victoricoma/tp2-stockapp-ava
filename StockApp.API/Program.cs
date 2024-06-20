@@ -1,6 +1,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
 
 internal class Program
 {
@@ -26,6 +27,35 @@ internal class Program
                     IssuerSigningKey = key
                 };
             });
+
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+            var securitySchema = new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            };
+
+            c.AddSecurityDefinition("Bearer", securitySchema);
+
+            var securityRequirement = new OpenApiSecurityRequirement
+    {
+        { securitySchema, new[] { "Bearer" } }
+    };
+
+            c.AddSecurityRequirement(securityRequirement);
+        });
 
         var app = builder.Build();
 
