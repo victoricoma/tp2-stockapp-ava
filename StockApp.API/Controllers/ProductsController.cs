@@ -149,5 +149,14 @@ namespace StockApp.Web.Controllers
             var products = await _productRepository.GetFilteredAsync(name, minPrice, maxPrice);
             return Ok(products);
         }
+
+        [HttpGet]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public async Task<ActionResult<IEnumerable<Product>>> GetAll(int pageNumber = 1, int pageSize = 10)
+        {
+            var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
+            return Ok(products);
+        }
+
     }
 }
