@@ -29,7 +29,7 @@ namespace StockApp.Infra.Data.Repositories
         public async Task<IEnumerable<Product>> GetAllAsync(int pageNumber, int pageSize)
         {
             return await _context.Products
-                .Skip(pageNumber * pageSize)
+                .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
@@ -91,6 +91,7 @@ namespace StockApp.Infra.Data.Repositories
             await _context.SaveChangesAsync();
             return product;
         }
+
         public async Task<IEnumerable<Product>> GetFilteredAsync(string name, decimal? minPrice, decimal? maxPrice)
         {
             IQueryable<Product> query = _context.Products;
@@ -111,6 +112,25 @@ namespace StockApp.Infra.Data.Repositories
             }
 
             return await query.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetAllProductsAsync()
+        {
+            return await _context.Products.ToListAsync();
+        }
+
+        public string EscapeForCsv(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+
+            if (value.Contains("\""))
+                value = value.Replace("\"", "\"\"");
+
+            if (value.Contains(","))
+                value = $"\"{value}\"";
+
+            return value;
         }
     }
 }
