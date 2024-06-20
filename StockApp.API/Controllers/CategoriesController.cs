@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
+using StockApp.Domain.Entities;
+using StockApp.Domain.Interfaces;
 
 namespace StockApp.API.Controllers
 {
@@ -9,6 +11,8 @@ namespace StockApp.API.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
+
+        private readonly IProductRepository _productRepository;
 
         public CategoriesController(ICategoryService categoryService)
         {
@@ -77,6 +81,13 @@ namespace StockApp.API.Controllers
             await _categoryService.Remove(id);
 
             return Ok(category);
+        }
+
+        [HttpGet("products", Name = "GetAllProducts")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+        {
+            var products = await _productRepository.GetProducts();
+            return Ok(products);
         }
     }
 }
