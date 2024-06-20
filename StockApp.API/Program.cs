@@ -2,12 +2,17 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using StockApp.Infra.Data.Context;
+using StockApp.Domain.Interfaces;
+using StockApp.Infrastructure.Repositories;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
 
         builder.Services.AddCors(options =>
         {
@@ -20,6 +25,7 @@ internal class Program
         });
 
         builder.Services.AddControllers();
+
 
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
@@ -39,6 +45,11 @@ internal class Program
                     IssuerSigningKey = key
                 };
             });
+
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
         builder.Services.AddSwaggerGen(c =>
         {
