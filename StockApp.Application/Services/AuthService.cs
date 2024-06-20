@@ -1,21 +1,21 @@
 ﻿using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
 using StockApp.Domain.Interfaces;
-using System;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 
 namespace StockApp.Application.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IAppConfiguration _configuration;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(IUserRepository userRepository, IAppConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
             _configuration = configuration;
@@ -30,7 +30,7 @@ namespace StockApp.Application.Services
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -39,7 +39,7 @@ namespace StockApp.Application.Services
                     new Claim(ClaimTypes.Name, user.Username),
                     new Claim(ClaimTypes.Role, user.Role)
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"])),
+                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"])),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
