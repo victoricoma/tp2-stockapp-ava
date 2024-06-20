@@ -10,11 +10,9 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
-
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowAll", builder =>
@@ -24,15 +22,11 @@ internal class Program
                        .AllowAnyHeader();
             });
         });
-
         builder.Services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = builder.Configuration.GetConnectionString("Redis");
         });
-
         builder.Services.AddControllers();
-
-
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
 
@@ -51,12 +45,9 @@ internal class Program
                     IssuerSigningKey = key
                 };
             });
-
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
         builder.Services.AddScoped<IUserRepository, UserRepository>();
-
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
@@ -87,14 +78,13 @@ internal class Program
         });
 
         var app = builder.Build();
-
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
         }
         else
         {
-            app.UseExceptionHandler("/Error");
+            app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseHsts();
         }
 
