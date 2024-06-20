@@ -3,65 +3,70 @@ using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StockApp.API.Controllers
 {
-    [Route("/api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-
         private readonly IProductRepository _productRepository;
 
-        public CategoriesController(ICategoryService categoryService)
+        public CategoriesController(ICategoryService categoryService, IProductRepository productRepository)
         {
             _categoryService = categoryService;
+            _productRepository = productRepository;
         }
 
-        [HttpGet(Name ="GetCategories")]
-        public async Task<ActionResult<IEnumerable<CategoryDTO>>> Get() 
+        [HttpGet(Name = "GetCategories")]
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> Get()
         {
             var categories = await _categoryService.GetCategories();
-            if(categories== null)
+            if (categories == null || !categories.Any())
             {
                 return NotFound("Categories not found");
             }
             return Ok(categories);
         }
+
+
         [HttpGet("{id:int}", Name = "GetCategory")]
         public async Task<ActionResult<CategoryDTO>> Get(int id)
         {
             var category = await _categoryService.GetCategoryById(id);
-            if(category== null)
+            if (category == null)
             {
-                return NotFound("Category not Found");
+                return NotFound("Category not found");
             }
             return Ok(category);
         }
-        [HttpPost(Name ="Create Category")]
+
+        [HttpPost(Name = "CreateCategory")]
         public async Task<ActionResult> Post([FromBody] CategoryDTO categoryDTO)
         {
-            if(categoryDTO == null)
+            if (categoryDTO == null)
             {
-                return BadRequest("Invalid Data");
+                return BadRequest("Invalid data");
             }
+
             await _categoryService.Add(categoryDTO);
 
-            return new CreatedAtRouteResult("GetCategory", 
-                new { id = categoryDTO.Id }, categoryDTO);
+            return CreatedAtRoute("GetCategory", new { id = categoryDTO.Id }, categoryDTO);
         }
 
-        [HttpPut(Name ="Update Category")]
+        [HttpPut("{id:int}", Name = "UpdateCategory")]
         public async Task<ActionResult> Put(int id, [FromBody] CategoryDTO categoryDTO)
         {
-            if(id != categoryDTO.Id)
+            if (id != categoryDTO.Id)
             {
-                return BadRequest("Inconsisted Id");
+                return BadRequest("Inconsistent ID");
             }
-            if(categoryDTO == null)
+            if (categoryDTO == null)
             {
-                return BadRequest("Update Data Invalid");
+                return BadRequest("Update data invalid");
             }
 
             await _categoryService.Update(categoryDTO);
@@ -69,11 +74,11 @@ namespace StockApp.API.Controllers
             return Ok(categoryDTO);
         }
 
-        [HttpDelete("{id:int}", Name ="Delete Category")]
+        [HttpDelete("{id:int}", Name = "DeleteCategory")]
         public async Task<ActionResult<CategoryDTO>> Delete(int id)
         {
             var category = await _categoryService.GetCategoryById(id);
-            if(category == null) 
+            if (category == null)
             {
                 return NotFound("Category not found");
             }
@@ -96,6 +101,5 @@ namespace StockApp.API.Controllers
             var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
             return Ok(products);
         }
-
     }
 }

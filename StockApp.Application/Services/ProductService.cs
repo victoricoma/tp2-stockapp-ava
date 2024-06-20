@@ -36,9 +36,10 @@ namespace StockApp.Application.Services
 
         public async Task<ProductDTO> GetProductById(int? id)
         {
-            var productEntity = _productRepository.GetById(id);
+            var productEntity = await _productRepository.GetById(id);
             return _mapper.Map<ProductDTO>(productEntity);
         }
+
 
         public async Task Remove(int? id)
         {
