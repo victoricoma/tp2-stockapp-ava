@@ -1,137 +1,143 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using StockApp.Infra.Data.Context;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using StockApp.Domain.Interfaces;
 using StockApp.Infrastructure.Repositories;
 using StockApp.Application.Interfaces;
 using StockApp.Application.Services;
-using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
+using StockApp.Infra.Data.Context;
+using System.Text;
+using System.IO;
 
 public class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
 
-
-        var configuration = builder.Configuration;
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAll", builder =>
+        var host = new WebHostBuilder()
+            .UseKestrel()
+            .UseConfiguration(configuration)
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .ConfigureServices(services =>
             {
-                builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
-            });
-        });
-
-        builder.Services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = configuration.GetConnectionString("Redis");
-        });
-        builder.Services.AddControllers();
-
-        var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-        var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
-
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = configuration["JwtSettings:Issuer"],
-            ValidAudience = configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["JwtSettings:SecretKey"]))
-        };
-    });
-
-        builder.Services.AddAuthorization(options =>
-        {
-            options.AddPolicy("AdminPolicy", policy =>
-            {
-                policy.RequireRole("Admin");
-            });
-        });
-
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddScoped<IAuthService, AuthService>();
-
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
-
-            var securitySchema = new OpenApiSecurityScheme
-            {
-                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                Reference = new OpenApiReference
+                services.AddCors(options =>
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            };
+                    options.AddPolicy("AllowAll", builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader();
+                    });
+                });
 
-            c.AddSecurityDefinition("Bearer", securitySchema);
+                services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            var securityRequirement = new OpenApiSecurityRequirement
+                var jwtSettings = configuration.GetSection("JwtSettings");
+                var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        options.RequireHttpsMetadata = false;
+                        options.SaveToken = true;
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = jwtSettings["Issuer"],
+                            ValidAudience = jwtSettings["Audience"],
+                            IssuerSigningKey = key
+                        };
+                    });
+
+                services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("adminPolicy", policy =>
+                    {
+                        policy.RequireRole("admin");
+                    });
+                });
+
+                services.AddScoped<IUserRepository, UserRepository>();
+                services.AddScoped<IAuthService, AuthService>();
+
+                services.AddSwaggerGen(c =>
+                {
+                    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+                    var securityScheme = new OpenApiSecurityScheme
+                    {
+                        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                        Name = "Authorization",
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    };
+
+                    c.AddSecurityDefinition("Bearer", securityScheme);
+
+                    var securityRequirement = new OpenApiSecurityRequirement
+                    {
+                        { securityScheme, new[] { "Bearer" } }
+                    };
+
+                    c.AddSecurityRequirement(securityRequirement);
+                });
+
+                services.AddControllers();
+            })
+            .Configure(app =>
             {
-                { securitySchema, new[] { "Bearer" } }
-            };
+                var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
 
-            c.AddSecurityRequirement(securityRequirement);
-        });
+                if (env.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                }
+                else
+                {
+                    app.UseExceptionHandler("/error");
+                    app.UseHsts();
+                }
 
-        var app = builder.Build();
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseDeveloperExceptionPage();
-        }
-        else
-        {
-            app.UseMiddleware<ErrorHandlerMiddleware>();
-            app.UseHsts();
-        }
+                app.UseHttpsRedirection();
+                app.UseStaticFiles();
 
-        app.UseHttpsRedirection();
-        app.UseCors("AllowAll");
-        app.UseRouting();
-        app.UseAuthentication();
-        app.UseAuthorization();
+                app.UseRouting();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
+                app.UseCors("AllowAll");
 
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        });
+                app.UseAuthentication();
+                app.UseAuthorization();
 
-        app.Run();
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                });
+
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                });
+            })
+            .Build();
+
+        host.Run();
     }
 }
