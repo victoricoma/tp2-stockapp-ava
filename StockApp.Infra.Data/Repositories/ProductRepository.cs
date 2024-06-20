@@ -1,12 +1,11 @@
-﻿using StockApp.Domain.Entities;
-using StockApp.Domain.Interfaces;
-using StockApp.Infra.Data.Context;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using StockApp.Domain.Entities;
+using StockApp.Domain.Interfaces;
+using StockApp.Infra.Data.Context;
 
 namespace StockApp.Infra.Data.Repositories
 {
@@ -114,60 +113,28 @@ namespace StockApp.Infra.Data.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
-        {
-            return await _context.Products.ToListAsync();
-        }
-
-        public string EscapeForCsv(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return string.Empty;
-
-            if (value.Contains("\""))
-                value = value.Replace("\"", "\"\"");
-
-            if (value.Contains(","))
-                value = $"\"{value}\"";
-
-            return value;
-        }
-
         public async Task<IEnumerable<Product>> SearchAsync(string query, string sortBy, bool descending)
         {
-            IQueryable<Product> queryable = _context.Products;
+            IQueryable<Product> queryResult = _context.Products;
 
             if (!string.IsNullOrEmpty(query))
             {
-                queryable = queryable.Where(p =>
-                    p.Name.Contains(query) ||
-                    p.Description.Contains(query));
+                queryResult = queryResult.Where(p => p.Name.Contains(query));
             }
 
-            if (!string.IsNullOrEmpty(sortBy))
+            switch (sortBy?.ToLower())
             {
-                switch (sortBy.ToLower())
-                {
-                    case "name":
-                        queryable = descending ? queryable.OrderByDescending(p => p.Name) : queryable.OrderBy(p => p.Name);
-                        break;
-                    case "price":
-                        queryable = descending ? queryable.OrderByDescending(p => p.Price) : queryable.OrderBy(p => p.Price);
-                        break;
-                    case "stock":
-                        queryable = descending ? queryable.OrderByDescending(p => p.Stock) : queryable.OrderBy(p => p.Stock);
-                        break;
-                    default:
-                        queryable = descending ? queryable.OrderByDescending(p => p.Id) : queryable.OrderBy(p => p.Id);
-                        break;
-                }
-            }
-            else
-            {
-                queryable = queryable.OrderBy(p => p.Id);
+                case "name":
+                    queryResult = descending ? queryResult.OrderByDescending(p => p.Name) : queryResult.OrderBy(p => p.Name);
+                    break;
+                case "price":
+                    queryResult = descending ? queryResult.OrderByDescending(p => p.Price) : queryResult.OrderBy(p => p.Price);
+                    break;
+                default:
+                    break;
             }
 
-            return await queryable.ToListAsync();
+            return await queryResult.ToListAsync();
         }
     }
 }

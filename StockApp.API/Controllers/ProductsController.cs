@@ -4,29 +4,33 @@ using StockApp.Domain.Interfaces;
 using StockApp.Application.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using StockApp.Application.DTOs;
+using StockApp.Application.Services;
 
 namespace StockApp.Web.Controllers
 {
-    public class ProductsController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
         private readonly IInventoryService _inventoryService;
+        private readonly IProductService _productService;
 
-        public ProductsController(IProductRepository productRepository, IInventoryService inventoryService)
+        public ProductsController(IProductRepository productRepository, IInventoryService inventoryService, IProductService productService)
         {
-            _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
-            _inventoryService = inventoryService ?? throw new ArgumentNullException(nameof(inventoryService));
+            _productRepository = productRepository;
+            _inventoryService = inventoryService;
+            _productService = productService;
         }
 
         [HttpGet(Name = "GetProducts")]
         public async Task<ActionResult<IEnumerable<ProductDTO>>> Get()
         {
             var products = await _productRepository.GetProducts();
-            if(products == null)
+            if (products == null)
             {
                 return NotFound("Products not found");
             }
@@ -42,14 +46,16 @@ namespace StockApp.Web.Controllers
                 return NotFound("Product not found");
             }
             return Ok(product);
-        } 
+        }
 
+        [HttpGet("index")]
         public async Task<IActionResult> Index()
         {
             var products = await _productRepository.GetProducts();
-            return View(products);
+            return Ok(products);
         }
 
+        [HttpGet("details/{id}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -57,21 +63,22 @@ namespace StockApp.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetProductById(id);
+            var product = await _productRepository.GetProductById(id.Value);
             if (product == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return Ok(product);
         }
 
+        [HttpGet("create")]
         public IActionResult Create()
         {
-            return View();
+            return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product product)
         {
@@ -80,9 +87,10 @@ namespace StockApp.Web.Controllers
                 await _productRepository.Create(product);
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return Ok(product);
         }
 
+        [HttpGet("edit/{id}")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -90,16 +98,16 @@ namespace StockApp.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetProductById(id);
+            var product = await _productRepository.GetProductById(id.Value);
             if (product == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return Ok(product);
         }
 
-        [HttpPost]
+        [HttpPost("edit/{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Product product)
         {
@@ -113,9 +121,10 @@ namespace StockApp.Web.Controllers
                 await _productRepository.Update(product);
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return Ok(product);
         }
 
+        [HttpGet("delete/{id}")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -123,16 +132,16 @@ namespace StockApp.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetProductById(id);
+            var product = await _productRepository.GetProductById(id.Value);
             if (product == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return Ok(product);
         }
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost("delete/{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -175,7 +184,7 @@ namespace StockApp.Web.Controllers
             return Ok(products);
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<ActionResult<IEnumerable<Product>>> GetAll(int pageNumber = 1, int pageSize = 10)
         {
@@ -188,7 +197,7 @@ namespace StockApp.Web.Controllers
         {
             try
             {
-                var products = await _productRepository.GetProducts(); 
+                var products = await _productRepository.GetProducts();
                 var csv = new StringBuilder();
                 csv.AppendLine("Id,Name,Description,Price,Stock");
 
@@ -205,7 +214,6 @@ namespace StockApp.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
-
 
         private string EscapeForCsv(string value)
         {
@@ -226,6 +234,52 @@ namespace StockApp.Web.Controllers
         {
             var products = await _productRepository.SearchAsync(query, sortBy, descending);
             return Ok(products);
+
+        }
+
+        [HttpPost("{id}/upload-image")]
+        public async Task<IActionResult> UploadImage(int id, IFormFile image)
+        {
+            try
+            {
+                if (image == null || image.Length == 0)
+                {
+                    return BadRequest("Invalid image.");
+                }
+
+                if (!IsImageFile(image.FileName))
+                {
+                    return BadRequest("Unsupported file format. Only JPG, JPEG, and PNG files are allowed.");
+                }
+
+                var filePath = Path.Combine("wwwroot/images", $"{id}.jpg");
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                var product = await _productRepository.GetProductById(id);
+                if (product == null)
+                {
+                    return NotFound("Product not found.");
+                }
+
+                product.Image = $"{id}.jpg";
+                await _productRepository.Update(product);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        private bool IsImageFile(string fileName)
+        {
+            string ext = Path.GetExtension(fileName).ToLowerInvariant();
+            return ext == ".jpg" || ext == ".jpeg" || ext == ".png";
         }
 
     }
