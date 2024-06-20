@@ -1,61 +1,39 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
+using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace StockApp.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
-        private readonly IConfiguration _configuration;
 
-        public AuthController(IUserRepository userRepository, IConfiguration configuration)
+        public UsersController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _configuration = configuration;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserLoginDTO userLoginDTO)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDTO userRegisterDto)
         {
-            var user = await _userRepository.GetByUsernameAsync(userLoginDTO.Username);
-
-            if (user == null || !BCrypt.Net.BCrypt.Verify(userLoginDTO.Password, user.PasswordHash))
+            if (userRegisterDto == null)
             {
-                return Unauthorized();
+                return BadRequest("Invalid user data.");
             }
 
-            var token = GenerateJwtToken(user.Username);
-            return Ok(new { Token = token });
-        }
-
-        private string GenerateJwtToken(string username)
-        {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var user = new User
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, username)
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["AccessTokenExpirationMinutes"])),
-                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
+                Username = userRegisterDto.Username,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password),
+                Role = userRegisterDto.Role
             };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            await _userRepository.AddAsync(user);
+            return Ok();
         }
     }
 }

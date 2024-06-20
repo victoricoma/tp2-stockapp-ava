@@ -14,6 +14,8 @@
     <PackageReference Include="AutoMapper" Version="11.0.0" />
     <PackageReference Include="BCrypt.Net" Version="0.1.0" />
     <PackageReference Include="MediatR" Version="10.0.1" />
+
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
