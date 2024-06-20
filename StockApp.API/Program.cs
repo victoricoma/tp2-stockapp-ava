@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using StockApp.Infra.Data.Context;
 using StockApp.Domain.Interfaces;
 using StockApp.Infrastructure.Repositories;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 
 internal class Program
 {
@@ -22,6 +23,11 @@ internal class Program
                        .AllowAnyMethod()
                        .AllowAnyHeader();
             });
+        });
+
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetConnectionString("Redis");
         });
 
         builder.Services.AddControllers();
