@@ -5,6 +5,7 @@ using StockApp.Application.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using StockApp.Application.DTOs;
 
 namespace StockApp.Web.Controllers
 {
@@ -19,6 +20,28 @@ namespace StockApp.Web.Controllers
             _inventoryService = inventoryService ?? throw new ArgumentNullException(nameof(inventoryService));
         }
 
+        [HttpGet(Name = "GetProducts")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> Get()
+        {
+            var products = await _productRepository.GetProducts();
+            if(products == null)
+            {
+                return NotFound("Products not found");
+            }
+            return Ok(products);
+        }
+
+        [HttpGet("{id}", Name = "GetProduct")]
+        public async Task<ActionResult<ProductDTO>> Get(int id)
+        {
+            var product = await _productRepository.GetProductById(id);
+            if (product == null)
+            {
+                return NotFound("Product not found");
+            }
+            return Ok(product);
+        } 
+
         public async Task<IActionResult> Index()
         {
             var products = await _productRepository.GetProducts();
@@ -32,7 +55,7 @@ namespace StockApp.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetById(id);
+            var product = await _productRepository.GetProductById(id);
             if (product == null)
             {
                 return NotFound();
@@ -65,7 +88,7 @@ namespace StockApp.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetById(id);
+            var product = await _productRepository.GetProductById(id);
             if (product == null)
             {
                 return NotFound();
@@ -98,7 +121,7 @@ namespace StockApp.Web.Controllers
                 return NotFound();
             }
 
-            var product = await _productRepository.GetById(id);
+            var product = await _productRepository.GetProductById(id);
             if (product == null)
             {
                 return NotFound();
@@ -111,7 +134,7 @@ namespace StockApp.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _productRepository.GetById(id);
+            var product = await _productRepository.GetProductById(id);
             if (product != null)
             {
                 await _productRepository.Remove(product);

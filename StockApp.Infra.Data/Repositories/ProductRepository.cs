@@ -46,7 +46,7 @@ namespace StockApp.Infra.Data.Repositories
             return product;
         }
 
-        public async Task<Product> GetById(int? id)
+        public async Task<Product> GetProductById(int? id)
         {
             if (id == null)
             {
