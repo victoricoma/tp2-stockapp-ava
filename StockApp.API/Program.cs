@@ -140,4 +140,18 @@ public class Program
 
         host.Run();
     }
+
+
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+        Host.CreateDefaultBuilder(args)
+            .ConfigureServices((hostContext, services) =>
+            {
+                services.AddHttpClient();
+                services.AddScoped<IReviewService, ReviewService>();
+
+            })
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Program>();
+            });
 }
