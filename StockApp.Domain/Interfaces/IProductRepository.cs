@@ -11,6 +11,7 @@ namespace StockApp.Domain.Interfaces
     {
         Task<IEnumerable<Product>> GetProducts();
         Task<IEnumerable<Product>> GetAllAsync(int pageNumber, int pageSize);
+        Task<IEnumerable<Product>> GetLowStockAsync(int threshold);
 
         Task<Product> GetById(int? id);
         Task<Product> Create(Product product);
