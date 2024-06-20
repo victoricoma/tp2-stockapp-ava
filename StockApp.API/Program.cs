@@ -8,7 +8,19 @@ internal class Program
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+
         builder.Services.AddControllers();
+
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]));
 
@@ -70,6 +82,9 @@ internal class Program
         }
 
         app.UseHttpsRedirection();
+
+        app.UseCors("AllowAll");
+
         app.UseRouting();
 
         app.UseAuthentication();
