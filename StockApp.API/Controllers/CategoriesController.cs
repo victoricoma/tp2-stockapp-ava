@@ -70,7 +70,7 @@ namespace StockApp.API.Controllers
         }
 
         [HttpDelete("{id:int}", Name ="Delete Category")]
-        public async Task<ActionResult<CategoryDTO>> Detele(int id)
+        public async Task<ActionResult<CategoryDTO>> Delete(int id)
         {
             var category = await _categoryService.GetCategoryById(id);
             if(category == null) 
@@ -89,5 +89,13 @@ namespace StockApp.API.Controllers
             var products = await _productRepository.GetProducts();
             return Ok(products);
         }
+
+        [HttpGet("pages", Name = "GetAllPages")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
+            return Ok(products);
+        }
+
     }
 }
