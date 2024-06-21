@@ -2,6 +2,8 @@ using StockApp.Infra.IoC;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.OpenApi.Models;
 using FluentAssertions.Common;
+using StockApp.Application.Interfaces;
+using StockApp.Application.Services;
 
 internal class Program
 {
@@ -26,12 +28,22 @@ internal class Program
             app.UseSwaggerUI();
         }
 
-      
 
-           
+         static IHostBuilder CreateHostBuilder(string[] args) =>
+      Host.CreateDefaultBuilder(args)
+          .ConfigureServices((hostContext, services) =>
+          {
+              services.AddHttpClient();
+              services.AddScoped<IReviewService, ReviewService>();
+          })
+          .ConfigureWebHostDefaults(webBuilder =>
+          {
+              webBuilder.UseStartup<Program>();
+          });
 
 
-            app.UseHttpsRedirection();
+
+        app.UseHttpsRedirection();
 
         app.UseAuthorization();
 
