@@ -17,14 +17,16 @@ namespace StockApp.API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
+        private readonly IReviewService _reviewService;
+        private readonly IReviewRepository _reviewRepository;
 
 
         public ProductsController(
             IProductRepository productRepository)
-           
+
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
-           
+
         }
 
         [HttpGet(Name = "GetProducts")]
@@ -94,7 +96,7 @@ namespace StockApp.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var product =  _productRepository.GetById(id);
+            var product = _productRepository.GetById(id);
             if (product == null)
             {
                 return NotFound();
@@ -144,6 +146,28 @@ namespace StockApp.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("{productId}/review")]
+        public async Task<IActionResult> AddReview(int productId, [FromBody] Review review)
+        {
+            try
+            {
+                if (review.Rating < 1 || review.Rating > 5)
+                {
+                    return BadRequest("A nota deve estar entre 1 e 5.");
+                }
 
+                review.ProductId = productId;
+                review.Date = DateTime.Now;
+
+                await _reviewRepository.AddAsync(review);
+
+                return Ok(review);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Erro ao adicionar avaliação: " + ex.Message);
+            }
+
+        }
     }
 }
