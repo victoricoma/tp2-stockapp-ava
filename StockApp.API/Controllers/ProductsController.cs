@@ -14,12 +14,12 @@ namespace StockApp.Web.Controllers
     public class ProductsController : Controller
     {
         private readonly IProductRepository _productRepository;
-       
+
 
         public ProductsController(IProductRepository productRepository)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
-         
+
         }
 
         [HttpGet(Name = "GetProducts")]
@@ -43,7 +43,26 @@ namespace StockApp.Web.Controllers
             }
             return Ok(product);
         }
+       
 
-      
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+
+        public async Task<IActionResult> Create(Product product)
+        {
+            if (ModelState.IsValid)
+            {
+                await _productRepository.Create(product);
+                return RedirectToAction(nameof(Index));
+            }
+            return View(product);
+        }
+
     }
+
 }
