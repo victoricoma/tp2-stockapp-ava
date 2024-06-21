@@ -5,6 +5,7 @@ using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace StockApp.API.Controllers
 {
