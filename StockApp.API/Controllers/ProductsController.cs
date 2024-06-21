@@ -2,6 +2,7 @@
 using Microsoft.VisualBasic.FileIO;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
+using StockApp.Application.Services;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using System;
@@ -18,15 +19,18 @@ namespace StockApp.API.Controllers
         private readonly IProductRepository _productRepository;
         private readonly IReviewService _reviewService;
         private readonly IReviewRepository _reviewRepository;
+        private readonly IPricingService _pricingService;
 
         public ProductsController(
             IProductRepository productRepository,
             IReviewService reviewService,
-            IReviewRepository reviewRepository)
+            IReviewRepository reviewRepository,
+            IPricingService pricingService)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _reviewService = reviewService ?? throw new ArgumentNullException(nameof(reviewService));
             _reviewRepository = reviewRepository ?? throw new ArgumentNullException(nameof(reviewRepository));
+            _pricingService = pricingService ?? throw new ArgumentNullException(nameof(pricingService));
         }
 
         [HttpGet(Name = "GetProducts")]
@@ -287,6 +291,20 @@ namespace StockApp.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Error during import: {ex.Message}");
+            }
+        }
+
+        [HttpGet("/produto/{productId}/preco")]
+        public async Task<ActionResult<decimal>> GetProductPrice(string productId)
+        {
+            try
+            {
+                var price = await _pricingService.GetProductPriceAsync(productId);
+                return Ok(price);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao obter preço do produto: {ex.Message}");
             }
         }
 
