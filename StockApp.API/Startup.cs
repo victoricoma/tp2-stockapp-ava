@@ -19,7 +19,6 @@ using System.Security.Claims;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
-using System;
 
 public class Startup
 {
@@ -76,6 +75,8 @@ public class Startup
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<ISupplierService, SupplierService>();
 
         var mappingConfig = new MapperConfiguration(mc =>
         {

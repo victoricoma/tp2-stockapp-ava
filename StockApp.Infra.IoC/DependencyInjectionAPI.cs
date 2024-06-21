@@ -20,8 +20,12 @@ public static class DependencyInjectionAPI
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<IUserRepository, UserRepository>(); 
-        services.AddScoped<IAuthService, AuthService>(); 
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<IReviewService, ReviewService>();
 
         services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
 

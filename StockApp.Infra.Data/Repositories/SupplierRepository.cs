@@ -1,13 +1,9 @@
-﻿using StockApp.Domain.Interfaces;
-using StockApp.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StockApp.Infra.Data;
+﻿using StockApp.Domain.Entities;
+using StockApp.Domain.Interfaces;
 using StockApp.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StockApp.Infra.Data.Repositories
 {
@@ -20,14 +16,14 @@ namespace StockApp.Infra.Data.Repositories
             _context = context;
         }
 
-        public async Task<Supplier> GetByIdAsync(int id)
-        {
-            return await _context.Suppliers.FindAsync(id);
-        }
-
         public async Task<IEnumerable<Supplier>> GetAllAsync()
         {
             return await _context.Suppliers.ToListAsync();
+        }
+
+        public async Task<Supplier> GetByIdAsync(int id)
+        {
+            return await _context.Suppliers.FindAsync(id);
         }
 
         public async Task AddAsync(Supplier supplier)
