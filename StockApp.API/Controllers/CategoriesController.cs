@@ -5,6 +5,7 @@ using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace StockApp.API.Controllers
 {
@@ -112,6 +113,17 @@ namespace StockApp.API.Controllers
 
             await _productRepository.BulkUpdateAsync(products);
             return NoContent();
+        }
+
+        [HttpPost("compare", Name = "CompareProducts")]
+        public async Task<ActionResult<IEnumerable<Product>>> CompareProducts([FromBody] List<int> productIds)
+        {
+            var products = await _productRepository.GetByIdsAsync(productIds);
+            if (products == null || !products.Any())
+            {
+                return NotFound("Products not found.");
+            }
+            return Ok(products);
         }
     }
 }
