@@ -3,11 +3,26 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using StockApp.Application.Interfaces;
+using StockApp.Application.Services;
+using Comtele.Sdk.Services;
 
 public class Program
 {
     public static void Main(string[] args)
     {
+
+        CreateHostBuilder(args).Build().Run();
+        var builder = WebApplication.CreateBuilder(args);
+        string comteleApiKey = builder.Configuration["Comtele:ApiKey"];
+
+        builder.Services.AddSingleton<ISmsService>(provider => new ComteleSmsService(comteleApiKey));
+
+        var app = builder.Build();
+
+        app.Run();
+
+
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
