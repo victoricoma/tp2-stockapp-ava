@@ -60,5 +60,12 @@ namespace StockApp.API.Controllers
             await _supplierRepository.DeleteAsync(id);
             return NoContent();
         }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Supplier>>> SearchSuppliers([FromQuery] string name, [FromQuery] string contactEmail)
+        {
+            var suppliers = await _supplierRepository.SearchAsync(name, contactEmail);
+            return Ok(suppliers);
+        }
     }
 }
