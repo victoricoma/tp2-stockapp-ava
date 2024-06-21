@@ -30,13 +30,11 @@ public class Startup
     {
         services.AddControllers();
 
-        // Configurações de Limitação de Taxa (Rate Limiting)
         services.AddMemoryCache();
         services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         services.AddInMemoryRateLimiting();
 
-        // Outras configurações
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
