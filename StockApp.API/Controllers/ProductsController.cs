@@ -167,31 +167,76 @@ namespace StockApp.API.Controllers
             return NoContent();
         }
 
-        //[HttpPost("compare", Name = "CompareProducts")]
-        //public async Task<ActionResult<IEnumerable<Product>>> CompareProducts([FromBody] List<int> productIds)
-        //{
-        //    var products = await _productRepository.GetByIdsAsync(productIds);
-        //    if (products == null || !products.Any())
-        //    {
-        //        return NotFound("Products not found.");
-        //    }
-        //    return Ok(products);
-        //}
+        [HttpPost("compare", Name = "CompareProducts")]
+        public async Task<ActionResult<IEnumerable<Product>>> CompareProducts([FromBody] List<int> productIds)
+        {
+            var products = await _productRepository.GetByIdsAsync(productIds);
+            if (products == null || !products.Any())
+            {
+                return NotFound("Products not found.");
+            }
+            return Ok(products);
+        }
 
-        //[HttpPost("webhook")]
-        //public async Task<IActionResult> Webhook([FromBody] WebhookDTO webhookDTO)
-        //{
-        //    if (webhookDTO.EventType == "ProductCreated")
-        //    {
-        //        await NotifyExternalSystems(webhookDTO.EventData);
-        //    }
-        //    else if (webhookDTO.EventType == "CategoryUpdated")
-        //    {
-        //        await NotifyExternalSystems(webhookDTO.EventData);
-        //    }
+        [HttpPost("webhook")]
+        public async Task<IActionResult> Webhook([FromBody] WebhookDTO webhookDTO)
+        {
+            if (webhookDTO.EventType == "ProductCreated")
+            {
+                await NotifyExternalSystems(webhookDTO.EventData);
+            }
+            else if (webhookDTO.EventType == "CategoryUpdated")
+            {
+                await NotifyExternalSystems(webhookDTO.EventData);
+            }
 
-        //    return Ok();
-        //}
+            return Ok();
+        }
+
+        [HttpPost("{id}/upload-image")]
+        public async Task<IActionResult> UploadImage(int id, IFormFile image)
+        {
+            try
+            {
+                if (image == null || image.Length == 0)
+                {
+                    return BadRequest("Invalid image.");
+                }
+
+                if (!IsImageFile(image.FileName))
+                {
+                    return BadRequest("Unsupported file format. Only JPG, JPEG, and PNG files are allowed.");
+                }
+
+                var filePath = Path.Combine("wwwroot/images", $"{id}.jpg");
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                var product = await _productRepository.GetProductById(id);
+                if (product == null)
+                {
+                    return NotFound("Product not found.");
+                }
+
+                product.Image = $"{id}.jpg";
+                await _productRepository.Update(product);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        private bool IsImageFile(string fileName)
+        {
+            string ext = Path.GetExtension(fileName).ToLowerInvariant();
+            return ext == ".jpg" || ext == ".jpeg" || ext == ".png";
+        }
 
         private async Task NotifyExternalSystems(string eventData)
         {

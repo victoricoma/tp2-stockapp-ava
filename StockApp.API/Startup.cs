@@ -13,15 +13,26 @@ using StockApp.Application.Services;
 using StockApp.Domain.Interfaces;
 using StockApp.Infra.Data.Context;
 using StockApp.Infra.Data.Repositories;
-using StockApp.Application.Mappings; 
+using StockApp.Application.Mappings;
 using System.Text;
 using System.Security.Claims;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
+using System;
 
 public class Startup
 {
     public Startup(IConfiguration configuration)
     {
         Configuration = configuration;
+
+        // Configure Serilog for logging
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(new RenderedCompactJsonFormatter())
+            .CreateLogger();
     }
 
     public IConfiguration Configuration { get; }
@@ -31,8 +42,7 @@ public class Startup
         services.AddControllers();
 
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
         services.AddAuthentication(options =>
         {
@@ -64,11 +74,9 @@ public class Startup
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAuthService, AuthService>();
-
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryService, CategoryService>();
 
-        
         var mappingConfig = new MapperConfiguration(mc =>
         {
             mc.AddProfile(new DomainToDTOMappingProfile());
@@ -106,6 +114,18 @@ public class Startup
 
             c.AddSecurityRequirement(securityRequirement);
         });
+
+        // Configuração do CORS
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAnyOrigin",
+                builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+        });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -130,8 +150,13 @@ public class Startup
 
         app.UseRouting();
 
+        // Middleware CORS
+        app.UseCors("AllowAnyOrigin");
+
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseSerilogRequestLogging(); // Logging de requisições com Serilog
 
         app.UseEndpoints(endpoints =>
         {
