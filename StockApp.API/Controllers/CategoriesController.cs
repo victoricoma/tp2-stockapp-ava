@@ -125,5 +125,25 @@ namespace StockApp.API.Controllers
             }
             return Ok(products);
         }
+
+        [HttpPost("webhook")]
+        public async Task<IActionResult> Webhook([FromBody] WebhookDTO webhookDTO)
+        {
+            if (webhookDTO.EventType == "ProductCreated")
+            {
+                await NotifyExternalSystems(webhookDTO.EventData);
+            }
+            else if (webhookDTO.EventType == "CategoryUpdated")
+            {
+                await NotifyExternalSystems(webhookDTO.EventData);
+            }
+
+            return Ok();
+        }
+
+        private async Task NotifyExternalSystems(string eventData)
+        {
+            
+        }
     }
 }
