@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using StockApp.Domain.Entities;
@@ -12,6 +13,11 @@ namespace StockApp.Infra.Data.Repositories
     public class ProductRepository : IProductRepository
     {
         private readonly ApplicationDbContext _context;
+
+        public async Task<IEnumerable<Product>> GetByIdsAsync(IEnumerable<int> ids)
+        {
+           return await _context.Products.Where(p => ids.Contains(p.Id)).ToListAsync();
+        }
 
         public ProductRepository(ApplicationDbContext context)
         {
@@ -154,6 +160,21 @@ namespace StockApp.Infra.Data.Repositories
             }
 
             return await queryResult.ToListAsync();
+        }
+
+        public Task AddAsync(Product product)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Remove(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task GetById(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

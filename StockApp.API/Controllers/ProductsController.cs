@@ -1,25 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StockApp.Application.DTOs;
+using StockApp.Application.Interfaces;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
-using StockApp.Application.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using StockApp.Application.DTOs;
 
-namespace StockApp.Web.Controllers
+namespace StockApp.API.Controllers
 {
-    public class ProductsController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
 
 
-        public ProductsController(IProductRepository productRepository)
+        public ProductsController(
+            IProductRepository productRepository)
+           
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
-
+           
         }
 
         [HttpGet(Name = "GetProducts")]
@@ -33,7 +36,7 @@ namespace StockApp.Web.Controllers
             return Ok(products);
         }
 
-        [HttpGet("{id}", Name = "GetProduct")]
+        [HttpGet("{id:int}", Name = "GetProduct")]
         public async Task<ActionResult<ProductDTO>> Get(int id)
         {
             var product = await _productRepository.GetProductById(id);
@@ -43,24 +46,30 @@ namespace StockApp.Web.Controllers
             }
             return Ok(product);
         }
+
        
 
-        public IActionResult Create()
+       
+
+        [HttpGet("all")]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAll(int pageNumber = 1, int pageSize = 10)
         {
-            return View();
+            var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
+            return Ok(products);
         }
 
 
         [HttpPost]
-
-        public async Task<IActionResult> Create(Product product)
+        public async Task<ActionResult<Product>> Create(Product product)
         {
-            if (ModelState.IsValid)
-            {
-                await _productRepository.Create(product);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(product);
+            await _productRepository.AddAsync(product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+        }
+
+        private object GetById()
+        {
+            throw new NotImplementedException();
         }
 
         [HttpPut("{id}")]
@@ -74,6 +83,20 @@ namespace StockApp.Web.Controllers
             return NoContent();
         }
 
-    }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var product =  _productRepository.GetById(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            await _productRepository.Remove(id);
+            return NoContent();
+        }
+
+
+
+    }
 }
