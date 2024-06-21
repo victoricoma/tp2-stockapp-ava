@@ -1,11 +1,9 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+﻿using AspNetCoreRateLimit;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StockApp.Application.Interfaces;
@@ -13,25 +11,15 @@ using StockApp.Application.Services;
 using StockApp.Domain.Interfaces;
 using StockApp.Infra.Data.Context;
 using StockApp.Infra.Data.Repositories;
-using StockApp.Application.Mappings;
-using System.Text;
 using System.Security.Claims;
-using Serilog;
-using Serilog.Events;
-using Serilog.Formatting.Compact;
+using System.Text;
+using StockApp.Application.Mappings;
 
 public class Startup
 {
     public Startup(IConfiguration configuration)
     {
         Configuration = configuration;
-
-        // Configure Serilog for logging
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console(new RenderedCompactJsonFormatter())
-            .CreateLogger();
     }
 
     public IConfiguration Configuration { get; }
@@ -40,6 +28,13 @@ public class Startup
     {
         services.AddControllers();
 
+        // Configurações de Limitação de Taxa (Rate Limiting)
+        services.AddMemoryCache();
+        services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
+        services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        services.AddInMemoryRateLimiting();
+
+        // Outras configurações
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -75,8 +70,8 @@ public class Startup
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<ISupplierRepository, SupplierRepository>();
         services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
 
         var mappingConfig = new MapperConfiguration(mc =>
         {
@@ -157,7 +152,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseSerilogRequestLogging(); // Logging de requisições com Serilog
+        app.UseIpRateLimiting(); // Adicionando o middleware de limitação de taxa
 
         app.UseEndpoints(endpoints =>
         {
