@@ -176,5 +176,13 @@ namespace StockApp.Infra.Data.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public async Task<IEnumerable<Product>> GetAll(int pageNumber, int pageSize)
+        {
+            return await _context.Products
+                .Skip(pageNumber).Take(pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
     }
 }

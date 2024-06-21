@@ -49,13 +49,18 @@ namespace StockApp.API.Controllers
             return Ok(product);
         }
 
-       
 
-       
+        [HttpGet("pages", Name = "GetAllPages")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
+            return Ok(products);
+        }
+
 
         [HttpGet("all")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAll(int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAllAsync(int pageNumber = 1, int pageSize = 10)
         {
             var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
             return Ok(products);
