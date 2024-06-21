@@ -33,8 +33,8 @@ public static class DependencyInjection
         services.AddScoped<ISupplierService, SupplierService>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IReviewService, ReviewService>();
-
-        
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<IPromotionService, PromotionService>();
 
         services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
 
