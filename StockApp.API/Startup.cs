@@ -14,6 +14,8 @@ using StockApp.Infra.Data.Repositories;
 using System.Security.Claims;
 using System.Text;
 using StockApp.Application.Mappings;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 public class Startup
 {
@@ -104,9 +106,9 @@ public class Startup
             c.AddSecurityDefinition("Bearer", securityScheme);
 
             var securityRequirement = new OpenApiSecurityRequirement
-            {
-                { securityScheme, new[] { "Bearer" } }
-            };
+        {
+            { securityScheme, new[] { "Bearer" } }
+        };
 
             c.AddSecurityRequirement(securityRequirement);
         });
@@ -121,6 +123,22 @@ public class Startup
                            .AllowAnyMethod()
                            .AllowAnyHeader();
                 });
+        });
+
+        services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var supportedCultures = new[]
+            {
+            new CultureInfo("en-US"),
+            new CultureInfo("pt-BR")
+            // Adicione mais culturas conforme necessário
+        };
+
+            options.DefaultRequestCulture = new RequestCulture("en-US");
+            options.SupportedCultures = supportedCultures;
+            options.SupportedUICultures = supportedCultures;
         });
     }
 
