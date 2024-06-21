@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StockApp.Domain.Test
+namespace StockApp.Domain.Entities
 {
     public class Supplier
     {
