@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using StockApp.Application.Interfaces;
 using StockApp.Application.DTOs;
+using StockApp.Application.Interfaces;
 using System.Threading.Tasks;
 
 namespace StockApp.API.Controllers
@@ -19,6 +19,11 @@ namespace StockApp.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDTO userLoginDTO)
         {
+            if (string.IsNullOrEmpty(userLoginDTO.Username) || string.IsNullOrEmpty(userLoginDTO.Password))
+            {
+                return BadRequest();
+            }
+
             var token = await _authService.AuthenticateAsync(userLoginDTO.Username, userLoginDTO.Password);
 
             if (token == null)
