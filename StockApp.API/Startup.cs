@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ using StockApp.Application.Services;
 using StockApp.Domain.Interfaces;
 using StockApp.Infra.Data.Context;
 using StockApp.Infra.Data.Repositories;
+using StockApp.Application.Mappings; 
 using System.Text;
 using System.Security.Claims;
 
@@ -60,6 +62,21 @@ public class Startup
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAuthService, AuthService>();
+
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryService, CategoryService>();
+
+        
+        var mappingConfig = new MapperConfiguration(mc =>
+        {
+            mc.AddProfile(new DomainToDTOMappingProfile());
+            mc.AddProfile(new DTOToCommandMappingProfile());
+        });
+
+        IMapper mapper = mappingConfig.CreateMapper();
+        services.AddSingleton(mapper);
 
         services.AddSwaggerGen(c =>
         {

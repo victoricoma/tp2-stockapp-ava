@@ -1,92 +1,63 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
-using StockApp.Domain.Entities;
-using StockApp.Domain.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace StockApp.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
-        private readonly IProductRepository _productRepository;
 
-        public CategoriesController(ICategoryService categoryService, IProductRepository productRepository)
+        public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
-            _productRepository = productRepository;
         }
 
-        [HttpGet(Name = "GetCategories")]
-        public async Task<ActionResult<IEnumerable<CategoryDTO>>> Get()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategories()
         {
-            var categories = await _categoryService.GetCategories();
-            if (categories == null || !categories.Any())
-            {
-                return NotFound("Categories not found");
-            }
+            var categories = await _categoryService.GetCategoriesAsync();
             return Ok(categories);
         }
 
-
-        [HttpGet("{id:int}", Name = "GetCategory")]
-        public async Task<ActionResult<CategoryDTO>> Get(int id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
-            var category = await _categoryService.GetCategoryById(id);
+            var category = await _categoryService.GetCategoryByIdAsync(id);
             if (category == null)
             {
-                return NotFound("Category not found");
+                return NotFound();
             }
             return Ok(category);
         }
 
-        [HttpPost(Name = "CreateCategory")]
-        public async Task<ActionResult> Post([FromBody] CategoryDTO categoryDTO)
+        [HttpPost]
+        public async Task<ActionResult> AddCategory([FromBody] CategoryDTO categoryDto)
         {
-            if (categoryDTO == null)
-            {
-                return BadRequest("Invalid data");
-            }
-
-            await _categoryService.Add(categoryDTO);
-
-            return CreatedAtRoute("GetCategory", new { id = categoryDTO.Id }, categoryDTO);
+            await _categoryService.AddCategoryAsync(categoryDto);
+            return CreatedAtAction(nameof(GetCategory), new { id = categoryDto.Id }, categoryDto);
         }
 
-        [HttpPut("{id:int}", Name = "UpdateCategory")]
-        public async Task<ActionResult> Put(int id, [FromBody] CategoryDTO categoryDTO)
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateCategory(int id, [FromBody] CategoryDTO categoryDto)
         {
-            if (id != categoryDTO.Id)
+            if (id != categoryDto.Id)
             {
-                return BadRequest("Inconsistent ID");
+                return BadRequest();
             }
-            if (categoryDTO == null)
-            {
-                return BadRequest("Update data invalid");
-            }
-
-            await _categoryService.Update(categoryDTO);
-
-            return Ok(categoryDTO);
+            await _categoryService.UpdateCategoryAsync(categoryDto);
+            return NoContent();
         }
 
-        [HttpDelete("{id:int}", Name = "DeleteCategory")]
-        public async Task<ActionResult<CategoryDTO>> Delete(int id)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteCategory(int id)
         {
-            var category = await _categoryService.GetCategoryById(id);
-            if (category == null)
-            {
-                return NotFound("Category not found");
-            }
-
-            await _categoryService.Remove(id);
-
-            return Ok(category);
+            await _categoryService.DeleteCategoryAsync(id);
+            return NoContent();
         }
     }
 }

@@ -1,15 +1,15 @@
 ﻿using StockApp.Domain.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StockApp.Domain.Interfaces
 {
     public interface ICategoryRepository
     {
-        Task<IEnumerable<Category>> GetCategories();
-
-        Task<Category> GetById(int? id);
-
-        Task<Category> Create(Category category);
-        Task<Category> Update(Category category);
-        Task <Category> Remove(Category category);
+        Task<IEnumerable<Category>> GetCategoriesAsync();
+        Task<Category> GetCategoryByIdAsync(int id);
+        Task AddCategoryAsync(Category category);
+        Task UpdateCategoryAsync(Category category);
+        Task DeleteCategoryAsync(int id);
     }
 }

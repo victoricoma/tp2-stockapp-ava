@@ -1,19 +1,17 @@
-﻿using StockApp.Application.DTOs;
-using System;
+﻿// StockApp.Application.Interfaces.ICategoryService.cs
+
+using StockApp.Application.DTOs;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StockApp.Application.Interfaces
 {
     public interface ICategoryService
     {
-        Task<IEnumerable<CategoryDTO>> GetCategories();
-        Task<CategoryDTO> GetCategoryById(int? id);
-        Task Add(CategoryDTO categoryDto);
-        Task Update(CategoryDTO categoryDto);
-        Task Remove(int? id);
-
+        Task<IEnumerable<CategoryDTO>> GetCategoriesAsync();
+        Task<CategoryDTO> GetCategoryByIdAsync(int id);
+        Task AddCategoryAsync(CategoryDTO categoryDto);
+        Task UpdateCategoryAsync(CategoryDTO categoryDto);
+        Task DeleteCategoryAsync(int id);
     }
 }
