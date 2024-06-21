@@ -14,5 +14,7 @@ namespace StockApp.Domain.Entities
         public int Rating { get; set; }
         public string Comment { get; set; }
         public DateTime Date { get; set; }
+
+        public Product Product { get; set; }
     }
 }
