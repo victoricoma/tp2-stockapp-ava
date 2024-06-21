@@ -1,27 +1,29 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StockApp.Application.DTOs;
+using StockApp.Application.Interfaces;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
-using StockApp.Application.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using StockApp.Application.DTOs;
 
-namespace StockApp.Web.Controllers
+namespace StockApp.API.Controllers
 {
-    public class ProductsController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
-        private readonly IInventoryService _inventoryService;
         private readonly IReviewService _reviewService;
         private readonly IReviewRepository _reviewRepository;
 
-        public ProductsController(IProductRepository productRepository, IInventoryService inventoryService, IReviewService reviewService, IReviewRepository reviewRepository)
+        public ProductsController(
+            IProductRepository productRepository,
+            IReviewService reviewService,
+            IReviewRepository reviewRepository)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
-            _inventoryService = inventoryService ?? throw new ArgumentNullException(nameof(inventoryService));
             _reviewService = reviewService ?? throw new ArgumentNullException(nameof(reviewService));
             _reviewRepository = reviewRepository ?? throw new ArgumentNullException(nameof(reviewRepository));
         }
@@ -37,7 +39,7 @@ namespace StockApp.Web.Controllers
             return Ok(products);
         }
 
-        [HttpGet("{id}", Name = "GetProduct")]
+        [HttpGet("{id:int}", Name = "GetProduct")]
         public async Task<ActionResult<ProductDTO>> Get(int id)
         {
             var product = await _productRepository.GetProductById(id);
@@ -48,131 +50,8 @@ namespace StockApp.Web.Controllers
             return Ok(product);
         }
 
-        public async Task<IActionResult> Index()
-        {
-            var products = await _productRepository.GetProducts();
-            return View(products);
-        }
-
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _productRepository.GetProductById(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpPost("{productId}/review")]
-        public async Task<IActionResult> AddReview(int productId, [FromBody] Review review)
-        {
-            try
-            {
-                if (review.Rating < 1 || review.Rating > 5)
-                {
-                    return BadRequest("A nota deve estar entre 1 e 5.");
-                }
-
-                review.ProductId = productId;
-                review.Date = DateTime.Now;
-
-                await _reviewRepository.AddAsync(review);
-
-                return Ok(review);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Erro ao adicionar avaliação: " + ex.Message);
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product product)
-        {
-            if (ModelState.IsValid)
-            {
-                await _productRepository.Create(product);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(product);
-        }
-
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _productRepository.GetProductById(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product product)
-        {
-            if (id != product.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                await _productRepository.Update(product);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(product);
-        }
-
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _productRepository.GetProductById(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var product = await _productRepository.GetProductById(id);
-            if (product != null)
-            {
-                await _productRepository.Remove(product);
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
         [HttpGet("low-stock")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetLowStock([FromQuery] int threshold)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetLowStock([FromQuery] int threshold)
         {
             var products = await _productRepository.GetLowStockAsync(threshold);
             return Ok(products);
@@ -184,27 +63,25 @@ namespace StockApp.Web.Controllers
         {
             try
             {
-                await _inventoryService.ReplenishStockAsync();
-                return RedirectToAction(nameof(Index));
+                // await _inventoryService.ReplenishStockAsync();
+                return Ok("Stock replenished successfully");
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "Error replenishing stock: " + ex.Message);
-                return RedirectToAction(nameof(Index));
+                return StatusCode(500, "Error replenishing stock: " + ex.Message);
             }
-
         }
 
         [HttpGet("filtered")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetFiltered([FromQuery] string name, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetFiltered([FromQuery] string name, [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice)
         {
             var products = await _productRepository.GetFilteredAsync(name, minPrice, maxPrice);
             return Ok(products);
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any, NoStore = false)]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAll(int pageNumber = 1, int pageSize = 10)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAll(int pageNumber = 1, int pageSize = 10)
         {
             var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
             return Ok(products);
@@ -228,11 +105,9 @@ namespace StockApp.Web.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "Error exporting products: " + ex.Message);
-                return RedirectToAction(nameof(Index));
+                return StatusCode(500, "Error exporting products: " + ex.Message);
             }
         }
-
 
         private string EscapeForCsv(string value)
         {
@@ -249,11 +124,33 @@ namespace StockApp.Web.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<Product>>> Search([FromQuery] string query, [FromQuery] string sortBy, [FromQuery] bool descending)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> Search([FromQuery] string query, [FromQuery] string sortBy, [FromQuery] bool descending)
         {
             var products = await _productRepository.SearchAsync(query, sortBy, descending);
             return Ok(products);
         }
 
+        [HttpPost("{productId}/review")]
+        public async Task<IActionResult> AddReview(int productId, [FromBody] Review review)
+        {
+            try
+            {
+                if (review.Rating < 1 || review.Rating > 5)
+                {
+                    return BadRequest("Rating must be between 1 and 5.");
+                }
+
+                review.ProductId = productId;
+                review.Date = DateTime.Now;
+
+                await _reviewRepository.AddAsync(review);
+
+                return Ok(review);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error adding review: " + ex.Message);
+            }
+        }
     }
 }

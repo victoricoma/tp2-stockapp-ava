@@ -87,31 +87,5 @@ namespace StockApp.API.Controllers
 
             return Ok(category);
         }
-
-        [HttpGet("products", Name = "GetAllProducts")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
-        {
-            var products = await _productRepository.GetProducts();
-            return Ok(products);
-        }
-
-        [HttpGet("pages", Name = "GetAllPages")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
-        {
-            var products = await _productRepository.GetAllAsync(pageNumber, pageSize);
-            return Ok(products);
-        }
-
-        [HttpPut("bulk-update", Name = "BulkUpdateProducts")]
-        public async Task<IActionResult> BulkUpdate([FromBody] List<Product> products)
-        {
-            if (products == null || !products.Any())
-            {
-                return BadRequest("Invalid product data");
-            }
-
-            await _productRepository.BulkUpdateAsync(products);
-            return NoContent();
-        }
     }
 }
