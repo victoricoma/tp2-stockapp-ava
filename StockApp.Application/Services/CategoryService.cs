@@ -1,54 +1,51 @@
-﻿using AutoMapper;
-using StockApp.Application.DTOs;
+﻿using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
-using System;
+using AutoMapper;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StockApp.Application.Services
 {
     public class CategoryService : ICategoryService
     {
-        private ICategoryRepository _categoryRepository;
-        private IMapper _mapper;
-        public CategoryService(ICategoryRepository categoryRepository,IMapper mapper) 
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
+
+        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper)
         {
-            _mapper = mapper;
             _categoryRepository = categoryRepository;
+            _mapper = mapper;
         }
 
-        public async Task Add(CategoryDTO categoryDto)
+        public async Task<IEnumerable<CategoryDTO>> GetCategoriesAsync()
         {
-            var categoryEntity = _mapper.Map<Category>(categoryDto);
-            await _categoryRepository.Create(categoryEntity);
+            var categories = await _categoryRepository.GetCategoriesAsync();
+            return _mapper.Map<IEnumerable<CategoryDTO>>(categories);
         }
 
-        public async Task<IEnumerable<CategoryDTO>> GetCategories()
+        public async Task<CategoryDTO> GetCategoryByIdAsync(int id)
         {
-            var categoriesEntity = await _categoryRepository.GetCategories();
-            return _mapper.Map<IEnumerable<CategoryDTO>>(categoriesEntity);
+            var category = await _categoryRepository.GetCategoryByIdAsync(id);
+            return _mapper.Map<CategoryDTO>(category);
         }
 
-        public async Task<CategoryDTO> GetCategoryById(int? id)
+        public async Task AddCategoryAsync(CategoryDTO categoryDto)
         {
-            var categoryEntity = await _categoryRepository.GetById(id);
-            return _mapper.Map<CategoryDTO>(categoryEntity);
+            var category = _mapper.Map<Category>(categoryDto);
+            await _categoryRepository.AddCategoryAsync(category);
         }
 
-        public async Task Remove(int? id)
+        public async Task UpdateCategoryAsync(CategoryDTO categoryDto)
         {
-            var categoryEntity = _categoryRepository.GetById(id).Result;
-            await _categoryRepository.Remove(categoryEntity);
+            var category = _mapper.Map<Category>(categoryDto);
+            await _categoryRepository.UpdateCategoryAsync(category);
         }
 
-        public async Task Update(CategoryDTO categoryDto)
+        public async Task DeleteCategoryAsync(int id)
         {
-            var categoryEntity = _mapper.Map<Category>(categoryDto);
-            await _categoryRepository.Update(categoryEntity);
+            await _categoryRepository.DeleteCategoryAsync(id);
         }
     }
 }
