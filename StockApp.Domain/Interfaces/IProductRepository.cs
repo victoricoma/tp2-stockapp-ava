@@ -17,6 +17,7 @@ namespace StockApp.Domain.Interfaces
         Task<IEnumerable<Product>> GetByIdsAsync(IEnumerable<int> ids);
 
         Task BulkUpdateAsync(List<Product> products);
+        Task AddAsync(Product product);
 
         Task<Product> GetProductById(int? id);
         Task<Product> Create(Product product);

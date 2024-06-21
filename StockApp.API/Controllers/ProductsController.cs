@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic.FileIO;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
 using StockApp.Domain.Entities;
@@ -231,6 +232,64 @@ namespace StockApp.API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [HttpPost("import")]
+        public async Task<IActionResult> ImportFromCsv(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Invalid file.");
+            }
+
+            try
+            {
+                using (var stream = new StreamReader(file.OpenReadStream()))
+                {
+                    var parser = new TextFieldParser(stream)
+                    {
+                        Delimiters = new string[] { "," },
+                        HasFieldsEnclosedInQuotes = true
+                    };
+
+                    while (!parser.EndOfData)
+                    {
+                        var fields = parser.ReadFields();
+
+                        if (fields.Length < 4)
+                        {
+                            return BadRequest("Invalid CSV format. Each line must contain Name, Description, Price, Stock.");
+                        }
+
+                        if (!decimal.TryParse(fields[2], out decimal price) || price <= 0)
+                        {
+                            return BadRequest($"Invalid price value on line '{parser.LineNumber}'.");
+                        }
+
+                        if (!int.TryParse(fields[3], out int stock) || stock < 0)
+                        {
+                            return BadRequest($"Invalid stock value on line '{parser.LineNumber}'.");
+                        }
+
+                        var product = new Product
+                        {
+                            Name = fields[0],
+                            Description = fields[1],
+                            Price = price,
+                            Stock = stock
+                        };
+
+                        await _productRepository.AddAsync(product);
+                    }
+                }
+
+                return Ok("Import completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error during import: {ex.Message}");
+            }
+        }
+
 
         private bool IsImageFile(string fileName)
         {
