@@ -161,5 +161,11 @@ namespace StockApp.Infra.Data.Repositories
 
             return await queryResult.ToListAsync();
         }
+
+        public async Task AddAsync(Product product)
+        {
+            await _context.Products.AddAsync(product);
+            await _context.SaveChangesAsync();
+        }
     }
 }

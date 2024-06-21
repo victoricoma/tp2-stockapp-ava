@@ -1,7 +1,7 @@
-﻿using StockApp.Application.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using StockApp.Application.Interfaces;
 
 namespace StockApp.Application.Services
 {

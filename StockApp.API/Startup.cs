@@ -113,7 +113,6 @@ public class Startup
             c.AddSecurityRequirement(securityRequirement);
         });
 
-        // Configuração do CORS
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAnyOrigin",
@@ -133,7 +132,6 @@ public class Startup
             {
             new CultureInfo("en-US"),
             new CultureInfo("pt-BR")
-            // Adicione mais culturas conforme necessário
         };
 
             options.DefaultRequestCulture = new RequestCulture("en-US");
@@ -164,13 +162,12 @@ public class Startup
 
         app.UseRouting();
 
-        // Middleware CORS
         app.UseCors("AllowAnyOrigin");
 
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseIpRateLimiting(); // Adicionando o middleware de limitação de taxa
+        app.UseIpRateLimiting();
 
         app.UseEndpoints(endpoints =>
         {
