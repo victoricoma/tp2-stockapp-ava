@@ -152,5 +152,50 @@ namespace StockApp.API.Controllers
                 return StatusCode(500, "Error adding review: " + ex.Message);
             }
         }
+
+
+
+        [HttpPut("bulk-update", Name = "BulkUpdateProducts")]
+        public async Task<IActionResult> BulkUpdate([FromBody] List<Product> products)
+        {
+            if (products == null || !products.Any())
+            {
+                return BadRequest("Invalid product data");
+            }
+
+            await _productRepository.BulkUpdateAsync(products);
+            return NoContent();
+        }
+
+        //[HttpPost("compare", Name = "CompareProducts")]
+        //public async Task<ActionResult<IEnumerable<Product>>> CompareProducts([FromBody] List<int> productIds)
+        //{
+        //    var products = await _productRepository.GetByIdsAsync(productIds);
+        //    if (products == null || !products.Any())
+        //    {
+        //        return NotFound("Products not found.");
+        //    }
+        //    return Ok(products);
+        //}
+
+        //[HttpPost("webhook")]
+        //public async Task<IActionResult> Webhook([FromBody] WebhookDTO webhookDTO)
+        //{
+        //    if (webhookDTO.EventType == "ProductCreated")
+        //    {
+        //        await NotifyExternalSystems(webhookDTO.EventData);
+        //    }
+        //    else if (webhookDTO.EventType == "CategoryUpdated")
+        //    {
+        //        await NotifyExternalSystems(webhookDTO.EventData);
+        //    }
+
+        //    return Ok();
+        //}
+
+        private async Task NotifyExternalSystems(string eventData)
+        {
+
+        }
     }
 }
