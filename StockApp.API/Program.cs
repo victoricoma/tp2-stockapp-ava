@@ -1,4 +1,7 @@
 using StockApp.Infra.IoC;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.OpenApi.Models;
+using FluentAssertions.Common;
 
 internal class Program
 {
@@ -23,7 +26,12 @@ internal class Program
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
+      
+
+           
+
+
+            app.UseHttpsRedirection();
 
         app.UseAuthorization();
 
