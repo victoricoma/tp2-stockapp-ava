@@ -39,6 +39,11 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         string comteleApiKey = builder.Configuration["Comtele:ApiKey"];
 
+        builder.Services.AddHttpClient<IPricingService, PricingService>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.pricing.com/");
+        });
+
         builder.Services.AddSingleton<ISmsService>(provider => new ComteleSmsService(comteleApiKey));
 
         var app = builder.Build();
