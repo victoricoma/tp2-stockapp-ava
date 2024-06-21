@@ -255,7 +255,7 @@ namespace StockApp.API.Controllers
                     {
                         var fields = parser.ReadFields();
 
-                        if (fields.Length < 4)
+                        if (fields == null || fields.Length < 4)
                         {
                             return BadRequest("Invalid CSV format. Each line must contain Name, Description, Price, Stock.");
                         }
@@ -289,7 +289,6 @@ namespace StockApp.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Error during import: {ex.Message}");
             }
         }
-
 
         private bool IsImageFile(string fileName)
         {
