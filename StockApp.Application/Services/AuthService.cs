@@ -1,13 +1,15 @@
 ﻿using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
+using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using StockApp.Domain.Validation;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using System;
 
 namespace StockApp.Application.Services
 {
@@ -15,23 +17,30 @@ namespace StockApp.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly JwtSecurityTokenHandler _tokenHandler;
+        private readonly byte[] _secretKey;
 
         public AuthService(IUserRepository userRepository, IConfiguration configuration)
         {
-            _userRepository = userRepository;
-            _configuration = configuration;
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+
+            _tokenHandler = new JwtSecurityTokenHandler();
+            _secretKey = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
         }
 
         public async Task<TokenResponseDTO> AuthenticateAsync(string username, string password)
         {
             var user = await _userRepository.GetByUsernameAsync(username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user == null)
             {
-                return null;
+                throw new AuthenticationException("Invalid username or password.");
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
+            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            {
+                throw new AuthenticationException("Invalid username or password.");
+            }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -41,16 +50,16 @@ namespace StockApp.Application.Services
                     new Claim(ClaimTypes.Role, user.Role)
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"])),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_secretKey), SecurityAlgorithms.HmacSha256Signature),
                 Audience = _configuration["JwtSettings:Audience"],
                 Issuer = _configuration["JwtSettings:Issuer"]
             };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+            var token = _tokenHandler.CreateToken(tokenDescriptor);
 
             return new TokenResponseDTO
             {
-                Token = tokenHandler.WriteToken(token)
+                Token = _tokenHandler.WriteToken(token)
             };
         }
     }
