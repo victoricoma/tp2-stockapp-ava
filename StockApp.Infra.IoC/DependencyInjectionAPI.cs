@@ -15,7 +15,7 @@ namespace StockApp.Infra.IoC
     public static class DependencyInjectionAPI
     {
         public static IServiceCollection AddInfrastructureAPI(this IServiceCollection services,
-            IConfiguration configuration)
+            Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
              options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"

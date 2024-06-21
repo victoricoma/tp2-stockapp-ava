@@ -21,7 +21,7 @@ namespace StockApp.Application.Products.Handlers
         public async Task<Product> Handle(GetProductByIdQuery request,
             CancellationToken cancellationToken)
         {
-            return await _productRepository.GetById(request.Id);
+            return await _productRepository.GetProductById(request.Id);
         }
     }
 }
