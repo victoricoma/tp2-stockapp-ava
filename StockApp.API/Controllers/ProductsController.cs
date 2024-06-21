@@ -63,6 +63,17 @@ namespace StockApp.Web.Controllers
             return View(product);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, Product product)
+        {
+            if (id != product.Id)
+            {
+                return BadRequest();
+            }
+            await _productRepository.Update(product);
+            return NoContent();
+        }
+
     }
 
 }
