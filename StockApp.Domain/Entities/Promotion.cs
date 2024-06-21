@@ -13,13 +13,17 @@ namespace StockApp.Domain.Entities
         public decimal DiscountPercentage { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public string Description { get; set; }
+        public decimal Discount { get; set; }
 
-        public Promotion(string name, decimal discountPercentage, DateTime startDate, DateTime endDate)
+        public Promotion(string name, decimal discountPercentage, DateTime startDate, DateTime endDate, string description, decimal discount)
         {
             Name = name;
             DiscountPercentage = discountPercentage;
             StartDate = startDate;
             EndDate = endDate;
+            Description = description;
+            Discount = discount;
         }
     }
 }
