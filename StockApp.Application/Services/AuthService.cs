@@ -1,6 +1,6 @@
-﻿using StockApp.Application.DTOs;
+﻿using Microsoft.Extensions.Logging;
+using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
-using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
@@ -8,8 +8,9 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using StockApp.Domain.Validation;
 using System.Threading.Tasks;
+using Serilog.AspNetCore;
+using StockApp.Domain.Validation;
 
 namespace StockApp.Application.Services
 {
@@ -17,50 +18,58 @@ namespace StockApp.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
-        private readonly JwtSecurityTokenHandler _tokenHandler;
-        private readonly byte[] _secretKey;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IUserRepository userRepository, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, IConfiguration configuration, ILogger<AuthService> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-
-            _tokenHandler = new JwtSecurityTokenHandler();
-            _secretKey = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<TokenResponseDTO> AuthenticateAsync(string username, string password)
         {
-            var user = await _userRepository.GetByUsernameAsync(username);
-            if (user == null)
+            try
             {
-                throw new AuthenticationException("Invalid username or password.");
-            }
-
-            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            {
-                throw new AuthenticationException("Invalid username or password.");
-            }
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
+                var user = await _userRepository.GetByUsernameAsync(username);
+                if (user == null)
                 {
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role)
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"])),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_secretKey), SecurityAlgorithms.HmacSha256Signature),
-                Audience = _configuration["JwtSettings:Audience"],
-                Issuer = _configuration["JwtSettings:Issuer"]
-            };
+                    _logger.LogWarning($"User '{username}' not found.");
+                    throw new AuthenticationException("Invalid username or password.");
+                }
 
-            var token = _tokenHandler.CreateToken(tokenDescriptor);
+                if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                {
+                    _logger.LogWarning($"User '{username}' provided an invalid password.");
+                    throw new AuthenticationException("Invalid username or password.");
+                }
 
-            return new TokenResponseDTO
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new[]
+                    {
+                        new Claim(ClaimTypes.Name, user.Username),
+                        new Claim(ClaimTypes.Role, user.Role)
+                    }),
+                    Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:AccessTokenExpirationMinutes"])),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"])), SecurityAlgorithms.HmacSha256Signature),
+                    Audience = _configuration["JwtSettings:Audience"],
+                    Issuer = _configuration["JwtSettings:Issuer"]
+                };
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+
+                return new TokenResponseDTO
+                {
+                    Token = tokenHandler.WriteToken(token)
+                };
+            }
+            catch (Exception ex)
             {
-                Token = _tokenHandler.WriteToken(token)
-            };
+                _logger.LogError(ex, "An error occurred during authentication.");
+                throw;
+            }
         }
     }
 }
