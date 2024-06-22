@@ -6,6 +6,7 @@ using Serilog.Formatting.Compact;
 using StockApp.Application.Interfaces;
 using StockApp.Application.Services;
 using Comtele.Sdk.Services;
+using StockApp.Domain.Interfaces;
 
 public class Program
 {
@@ -45,6 +46,8 @@ public class Program
         });
 
         builder.Services.AddSingleton<ISmsService>(provider => new ComteleSmsService(comteleApiKey));
+
+        builder.Services.AddSingleton<IMarketTrendAnalysisService, MarketTrendAnalysisService>();
 
         var app = builder.Build();
 
