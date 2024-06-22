@@ -22,6 +22,16 @@ namespace StockApp.Application.Services
             _mapper = mapper;
         }
 
+        public IEnumerable<Product> GetAll()
+        {
+            return _productRepository.GetAll();
+        }
+
+        public Product GetById(int id)
+        {
+            return _productRepository.GetById(id);
+        }
+
         public async Task Add(ProductDTO productDto)
         {
             var productEntity = _mapper.Map<Product>(productDto);
