@@ -19,6 +19,7 @@ namespace StockApp.API.Controllers
         private readonly IProductRepository _productRepository;
         private readonly IReviewService _reviewService;
         private readonly IReviewRepository _reviewRepository;
+        private readonly IDiscountService _discountService;
 
 
         public ProductsController(
@@ -168,6 +169,17 @@ namespace StockApp.API.Controllers
                 return StatusCode(500, "Erro ao adicionar avaliação: " + ex.Message);
             }
 
+        }
+        public ProductsController(IDiscountService discountService)
+        {
+            _discountService = discountService;
+        }
+
+        [HttpGet("calculate-discount")]
+        public IActionResult CalculateDiscount(decimal price, decimal discountPercentage)
+        {
+            var discountedPrice = _discountService.ApplyDiscount(price, discountPercentage);
+            return Ok(new { DiscountedPrice = discountedPrice });
         }
     }
 }
