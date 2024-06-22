@@ -1,7 +1,5 @@
 using StockApp.Infra.IoC;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.OpenApi.Models;
-using FluentAssertions.Common;
 using StockApp.Application.Interfaces;
 using StockApp.Application.Services;
 
@@ -13,11 +11,15 @@ internal class Program
 
         // Add services to the container.
         builder.Services.AddInfrastructureAPI(builder.Configuration);
-
         builder.Services.AddControllers();
 
+        builder.Services.AddScoped<ICartService, CartService>();
+
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "StockApp API", Version = "v1" });
+        });
 
         var app = builder.Build();
 
@@ -25,28 +27,14 @@ internal class Program
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "StockApp API v1");
+            });
         }
 
-
-         static IHostBuilder CreateHostBuilder(string[] args) =>
-      Host.CreateDefaultBuilder(args)
-          .ConfigureServices((hostContext, services) =>
-          {
-              services.AddHttpClient();
-              services.AddScoped<IReviewService, ReviewService>();
-          })
-          .ConfigureWebHostDefaults(webBuilder =>
-          {
-              webBuilder.UseStartup<Program>();
-          });
-
-
-
         app.UseHttpsRedirection();
-
         app.UseAuthorization();
-
         app.MapControllers();
 
         app.Run();
