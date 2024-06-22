@@ -41,8 +41,18 @@ namespace StockApp.Api
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
+            app.UseRouting();
 
             app.Run();
+
+            // Endpoint padrão
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGet("/", async context =>
+                {
+                    await context.Response.WriteAsync("StockApp API is running");
+                });
+            });
         }
     }
 }
