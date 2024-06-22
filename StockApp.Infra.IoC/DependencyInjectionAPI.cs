@@ -26,6 +26,9 @@ public static class DependencyInjectionAPI
         services.AddScoped<ISupplierService, SupplierService>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<IPromotionService, PromotionService>();
+        services.AddScoped<IPricingService, PricingService>();
 
         services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
 

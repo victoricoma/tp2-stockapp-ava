@@ -2,12 +2,13 @@ using Moq;
 using Xunit;
 using StockApp.Application.Services;
 using StockApp.Application.Interfaces;
-using StockApp.Domain.Interfaces;
 using StockApp.Domain.Entities;
-using StockApp.Application.DTOs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Security.Authentication;
+using StockApp.Application.DTOs;
+using StockApp.Domain.Interfaces;
 
 public class AuthServiceTests
 {
