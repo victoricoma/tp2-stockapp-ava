@@ -22,6 +22,9 @@ namespace StockApp.Api
             builder.Services.AddControllers();
             builder.Services.AddSingleton<ICompetitivenessAnalysisService, CompetitivenessAnalysisService>();
 
+            builder.Services.AddControllers();
+            builder.Services.AddSingleton<IFinancialManagementService, FinancialManagementService>();
+
             // Configurar o Swagger
             builder.Services.AddSwaggerGen(c =>
             {
