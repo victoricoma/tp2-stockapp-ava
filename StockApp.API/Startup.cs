@@ -92,5 +92,8 @@ public class Startup
 
         // Outros serviços podem ser configurados aqui
         services.AddControllers();
+
+        services.AddSingleton<IJustInTimeInventoryService, JustInTimeInventoryService>();
+
     }
 }
