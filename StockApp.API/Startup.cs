@@ -82,9 +82,15 @@ public class Startup
                 });
         });
     
-
-
-          
         });
+    }
+
+    private static void ConfigureServices1(IServiceCollection services)
+    {
+        services.AddSingleton<ISentimentAnalysisService, SentimentAnalysisService>();
+        services.AddScoped<IFeedbackService, FeedbackService>();
+
+        // Outros serviços podem ser configurados aqui
+        services.AddControllers();
     }
 }
