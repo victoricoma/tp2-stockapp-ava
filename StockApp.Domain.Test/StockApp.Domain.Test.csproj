@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <PackageReference Include="Comtele.Sdk" Version="1.3.1" />
+	<PackageReference Include ="Moq" Version="4.20.70" />
+	<PackageReference Include="PushSharp" Version="4.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.31" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
     <PackageReference Include="Moq" Version="4.20.70" />
@@ -28,6 +30,7 @@
     <ProjectReference Include="..\StockApp.API\StockApp.API.csproj" />
     <ProjectReference Include="..\StockApp.Application\StockApp.Application.csproj" />
     <ProjectReference Include="..\StockApp.Domain\StockApp.Domain.csproj" />
+	<ProjectReference Include="..\StockApp.Infra.Data\StockApp.Infra.Data.csproj" />
   </ItemGroup>
 
 </Project>
