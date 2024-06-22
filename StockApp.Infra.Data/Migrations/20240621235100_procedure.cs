@@ -19,6 +19,18 @@ namespace StockApp.Infra.Data.Migrations
                       GROUP BY p.Name;
                   END;");
 
+            migrationBuilder.Sql(@"
+                DELIMITER //
+
+                CREATE PROCEDURE GetStockReport()
+                BEGIN
+                    SELECT Name, Stock
+                    FROM Products;
+                END //
+
+                DELIMITER ;
+            ");
+
             migrationBuilder.DropForeignKey(
                 name: "FK_Products_Categories_CategoryId",
                 table: "Products");
