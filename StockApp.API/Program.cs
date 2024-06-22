@@ -47,7 +47,6 @@ try
 
         var app = builder.Build();
 
-    var app = builder.Build();
 
     if (app.Environment.IsDevelopment())
     {
