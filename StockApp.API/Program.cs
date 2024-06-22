@@ -53,6 +53,30 @@ namespace StockApp.Api
                     await context.Response.WriteAsync("StockApp API is running");
                 });
             });
+
+            
+
+            // Configuração dos serviços
+            builder.Services.AddControllers();
+            builder.Services.AddSingleton<ISupplierRelationshipManagementService, SupplierRelationshipManagementService>();
+
+           
+            // Configuração do pipeline de requisição HTTP
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            app.Run();
         }
     }
 }
