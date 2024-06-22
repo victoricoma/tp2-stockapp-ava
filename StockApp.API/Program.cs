@@ -18,6 +18,9 @@ namespace StockApp.Api
             // Configurar serviços
             builder.Services.AddSingleton<IDiscountService, DiscountService>();
             builder.Services.AddControllers();
+            // Configuração dos serviços
+            builder.Services.AddControllers();
+            builder.Services.AddSingleton<ICompetitivenessAnalysisService, CompetitivenessAnalysisService>();
 
             // Configurar o Swagger
             builder.Services.AddSwaggerGen(c =>
