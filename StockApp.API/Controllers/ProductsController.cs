@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic.FileIO;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
@@ -7,6 +9,7 @@ using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,6 +23,7 @@ namespace StockApp.API.Controllers
         private readonly IReviewService _reviewService;
         private readonly IReviewRepository _reviewRepository;
         private readonly IPricingService _pricingService;
+        IConfiguration _configuration;
 
         public ProductsController(
             IProductRepository productRepository,
@@ -317,6 +321,43 @@ namespace StockApp.API.Controllers
         private async Task NotifyExternalSystems(string eventData)
         {
 
+        }
+
+        [HttpGet("sales-report")]
+        public async Task<IActionResult> GetSalesReport()
+        {
+            try
+            {
+                var salesReport = new List<SalesReportDto>();
+
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    await connection.OpenAsync();
+                    using (var command = new SqlCommand("GetSalesReport", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                salesReport.Add(new SalesReportDto
+                                {
+                                    ProductName = reader.GetString("Name"),
+                                    TotalSold = reader.GetInt32("TotalSold"),
+                                    TotalRevenue = reader.GetDecimal("TotalRevenue")
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return Ok(salesReport);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error retrieving sales report: {ex.Message}");
+            }
         }
     }
 }
