@@ -16,6 +16,9 @@ using StockApp.Infra.Data.Repositories;
 using StockApp.Application.Mappings;
 using System.Text;
 using System.Security.Claims;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 
 using System;
 
@@ -36,9 +39,17 @@ public class Startup
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-       
-        
-          
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = Configuration.GetConnectionString("Redis");
+            options.InstanceName = "SampleInstance"; // Nome opcional para distinguir várias instâncias de cache
+
+            services.AddControllers();
+        });
+
+
+
+
 
         services.AddAuthorization(options =>
         {
@@ -95,5 +106,11 @@ public class Startup
 
         services.AddSingleton<IJustInTimeInventoryService, JustInTimeInventoryService>();
 
+    }
+           
+        // Outros métodos de configuração
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        // Configuração de middleware, roteamento, etc.
     }
 }
