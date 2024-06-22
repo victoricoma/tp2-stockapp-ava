@@ -76,6 +76,12 @@ namespace StockApp.Infra.Data.Context
                 entity.Property(p => p.EndDate).IsRequired();
             });
 
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(o => o.OrderId);
+                entity.Property(o => o.OrderId).ValueGeneratedOnAdd();
+            });
+
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         }
     }

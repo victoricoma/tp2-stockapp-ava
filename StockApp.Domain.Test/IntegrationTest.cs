@@ -4,17 +4,18 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
 using StockApp.API;
 using StockApp.Application.DTOs;
 using Xunit;
 
 namespace StockApp.IntegrationTests
 {
-    public class IntegrationTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly HttpClient _client;
 
-        public IntegrationTests(WebApplicationFactory<Startup> factory)
+        public IntegrationTests(WebApplicationFactory<Program> factory)
         {
             _client = factory.CreateClient();
         }

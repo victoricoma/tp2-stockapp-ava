@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StockApp.Application.Services
+namespace StockApp.Application.Interfaces
 {
     public interface IPricingService
     {

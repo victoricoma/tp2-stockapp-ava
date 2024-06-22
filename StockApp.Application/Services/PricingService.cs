@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using StockApp.Application.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic.FileIO;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
-using StockApp.Application.Services;
 using StockApp.Domain.Entities;
 using StockApp.Domain.Interfaces;
 using System;

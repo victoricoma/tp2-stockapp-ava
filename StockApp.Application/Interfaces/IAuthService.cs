@@ -10,5 +10,6 @@ namespace StockApp.Application.Interfaces
     public interface IAuthService
     {
         Task<TokenResponseDTO> AuthenticateAsync(string username, string password);
+
     }
 }
