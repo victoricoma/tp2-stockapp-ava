@@ -19,6 +19,8 @@ namespace StockApp.Domain.Entities
         public int CategoryId { get; set; }
         #endregion
 
+        private readonly List<Product> _products;    
+
         public Product(string name, string description, decimal price, int stock, string image)
         {
             ValidateDomain(name, description, price, stock, image);
@@ -30,6 +32,23 @@ namespace StockApp.Domain.Entities
             Id= id;
             ValidateDomain(name, description, price, stock, image);
         }
+
+        //Create product
+        public IEnumerable<Product> GetAll()
+        {
+            return _products;
+        }
+        public Product GetById(int id)
+        {
+            return _products.FirstOrDefault(p => p.Id==id); 
+        } 
+        public Product Create(Product product)
+        {
+            product.Id=_products.Max(p=>p.Id)+1;
+            _products.Add(product);
+            return product;
+        }
+
 
 
 

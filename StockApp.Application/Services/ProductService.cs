@@ -21,16 +21,18 @@ namespace StockApp.Application.Services
             _productRepository = productRepository;
             _mapper = mapper;
         }
-
+        //pegar todos os produtos:
         public IEnumerable<Product> GetAll()
         {
             return _productRepository.GetAll();
         }
-
+        //pegar todos os produtos por id:
         public Product GetById(int id)
         {
             return _productRepository.GetById(id);
         }
+        //criar produtos:
+        
 
         public async Task Add(ProductDTO productDto)
         {
@@ -60,6 +62,21 @@ namespace StockApp.Application.Services
         {
             var productEntity = _mapper.Map<Product>(productDto);
             await _productRepository.Update(productEntity);
+        }
+
+        IEnumerable<ProductDTO> IProductService.GetAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Product GetByID(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Product Create(Product product)
+        {
+            return _productRepository.Create(product);
         }
     }
 }
