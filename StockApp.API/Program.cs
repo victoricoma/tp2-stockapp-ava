@@ -3,6 +3,8 @@ using Serilog.Formatting.Compact;
 using Serilog;
 using StockApp.Application.Interfaces;
 using StockApp.Application.Services;
+using Comtele.Sdk.Services;
+using StockApp.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +29,7 @@ try
 
     builder.Services.AddSingleton<ISmsService>(provider => new ComteleSmsService(comteleApiKey));
     builder.Services.AddInfrastructureAPI(builder.Configuration);
-    builder.Services.AddInfrastructureJWT(builder.Configuration); // Certifique-se de que o namespace correto é importado
+    builder.Services.AddInfrastructureJWT(builder.Configuration); // Certifique-se de que o namespace correto ï¿½ importado
     builder.Services.AddInfrastructureSwagger();
 
     builder.Services.AddAuthorization(options =>
@@ -41,6 +43,9 @@ try
     });
 
     builder.Services.AddControllers();
+        builder.Services.AddSingleton<IMarketTrendAnalysisService, MarketTrendAnalysisService>();
+
+        var app = builder.Build();
 
     var app = builder.Build();
 
