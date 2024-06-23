@@ -61,5 +61,9 @@ namespace StockApp.Infra.Data.Repositories
                 }
             }
         }
+        public async Task<IEnumerable<Product>> GetByIdsAsync(IEnumerable<int> ids)
+        {
+            return await _productContext.Products.Where(p => ids.Contains(p.Id)).ToListAsync();
+        }
     }
 }
