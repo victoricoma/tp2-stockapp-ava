@@ -93,5 +93,24 @@ namespace StockApp.API.Controllers
             await _reviewRepository.AddAsync(review);
             return Ok();
         }
+        private async Task NotifyExternalSystems(string eventData)
+        {
+
+        }
+
+        [HttpPost("webhook")]
+        public async Task<IActionResult> Webhook([FromBody] WebhookDTO webhookDTO)
+        {
+            if (webhookDTO.EventType == "ProductCreated")
+            {
+                await NotifyExternalSystems(webhookDTO.EventData);
+            }
+            else if (webhookDTO.EventType == "CategoryUpdated")
+            {
+                await NotifyExternalSystems(webhookDTO.EventData);
+            }
+
+            return Ok();
+        }
     }
 }
