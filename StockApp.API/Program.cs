@@ -1,3 +1,5 @@
+using StockApp.Application.Interfaces;
+using StockApp.Application.Services;
 using StockApp.Infra.IoC;
 
 internal class Program
@@ -9,7 +11,11 @@ internal class Program
         // Add services to the container.
         builder.Services.AddInfrastructureAPI(builder.Configuration);
 
+        // Configuração de serviços
+
         builder.Services.AddControllers();
+        builder.Services.AddSingleton<ICustomReportService, CustomReportService>();
+
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
