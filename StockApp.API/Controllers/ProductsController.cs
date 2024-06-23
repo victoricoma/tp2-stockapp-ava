@@ -40,5 +40,17 @@ namespace StockApp.API.Controllers
             }
             return Ok(product);
         }
+        [HttpPost]
+        public async Task<ActionResult> Post([FromBody] ProductDTO product)
+        {
+            if (product == null)
+            {
+                return BadRequest("Product is null");
+            }
+
+            await _productService.Add(product);
+
+            return CreatedAtRoute("GetProduct", new { id = product.Id }, product);
+        }
     }
 }
