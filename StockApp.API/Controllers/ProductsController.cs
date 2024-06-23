@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StockApp.Application.DTOs;
 using StockApp.Application.Interfaces;
+using StockApp.Domain.Entities;
+using StockApp.Domain.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,6 +13,7 @@ namespace StockApp.API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IProductRepository _productRepository;
 
         public ProductsController(IProductService productService)
         {
@@ -67,6 +70,12 @@ namespace StockApp.API.Controllers
             await _productService.Update(product);
 
             return Ok(product);
+        }
+        [HttpPut("bulk-update")]
+        public async Task<IActionResult> BulkUpdate([FromBody] List<Product> products)
+        {
+            await _productRepository.BulkUpdateAsync(products);
+            return NoContent();
         }
     }
 }
