@@ -14,6 +14,7 @@ namespace StockApp.API.Controllers
     {
         private readonly IProductService _productService;
         private readonly IProductRepository _productRepository;
+        private readonly IReviewRepository _reviewRepository;
 
         public ProductsController(IProductService productService)
         {
@@ -82,6 +83,15 @@ namespace StockApp.API.Controllers
         {
             var products = await _productRepository.GetByIdsAsync(productIds);
             return Ok(products);
+        }
+        [HttpPost("{productId}/review")]
+        public async Task<IActionResult> AddReview(int productId, [FromBody] Review review)
+        {
+            review.ProductId = productId;
+            review.Date = DateTime.Now;
+
+            await _reviewRepository.AddAsync(review);
+            return Ok();
         }
     }
 }
