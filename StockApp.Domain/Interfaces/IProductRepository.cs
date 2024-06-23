@@ -18,5 +18,6 @@ namespace StockApp.Domain.Interfaces
 
         Task<IEnumerable<Product>> GetByIdsAsync(IEnumerable<int> ids);
         Task BulkUpdateAsync(List<Product> products);
+        Task<IEnumerable<Product>> GetAll(int pageNumber, int pageSize);
     }
 }
