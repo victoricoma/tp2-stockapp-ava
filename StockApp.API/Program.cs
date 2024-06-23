@@ -36,6 +36,7 @@ internal class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.UseDeveloperExceptionPage();
         }
 
         app.UseHttpsRedirection();
@@ -43,6 +44,19 @@ internal class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.Run();
+
+
+
+        // Configuração dos serviços
+       
+        app.UseRouting();
+       
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
 
         app.Run();
     }
