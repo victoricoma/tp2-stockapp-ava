@@ -52,5 +52,21 @@ namespace StockApp.API.Controllers
 
             return CreatedAtRoute("GetProduct", new { id = product.Id }, product);
         }
+        [HttpPut("{id}", Name = "UpdateProduct")]
+        public async Task<ActionResult> Put(int id, [FromBody] ProductDTO product)
+        {
+            if (id != product.Id)
+            {
+                return BadRequest("Inconsistent Id");
+            }
+            if (product == null)
+            {
+                return BadRequest("Update Data Invalid");
+            }
+
+            await _productService.Update(product);
+
+            return Ok(product);
+        }
     }
 }
