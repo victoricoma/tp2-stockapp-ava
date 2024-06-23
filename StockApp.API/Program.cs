@@ -23,6 +23,8 @@ internal class Program
         builder.Services.AddControllers();
         builder.Services.AddSingleton<IEmployeePerformanceEvaluationService, EmployeePerformanceEvaluationService>();
 
+        builder.Services.AddControllers();
+        builder.Services.AddSingleton<IProcessAutomationService, ProcessAutomationService>();
 
         builder.Services.AddSwaggerGen();
 
