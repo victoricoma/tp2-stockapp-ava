@@ -19,6 +19,11 @@ internal class Program
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
         builder.Services.AddEndpointsApiExplorer();
+
+        builder.Services.AddControllers();
+        builder.Services.AddSingleton<IEmployeePerformanceEvaluationService, EmployeePerformanceEvaluationService>();
+
+
         builder.Services.AddSwaggerGen();
 
         var app = builder.Build();
