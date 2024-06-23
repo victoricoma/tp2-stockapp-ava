@@ -21,6 +21,8 @@ namespace StockApp.Infra.IoC
 {
     public static class DependencyInjection
     {
+
+
         public static IServiceCollection AddInfrastructure(this IServiceCollection services,
             IConfiguration configuration)
         {
@@ -31,6 +33,10 @@ namespace StockApp.Infra.IoC
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+           
+            services.AddScoped<ICartService, CartService>();
+
 
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
