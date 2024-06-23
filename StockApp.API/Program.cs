@@ -1,3 +1,5 @@
+using StockApp.Application.Interfaces;
+using StockApp.Application.Services;
 using StockApp.Infra.IoC;
 
 internal class Program
@@ -10,6 +12,8 @@ internal class Program
         builder.Services.AddInfrastructureAPI(builder.Configuration);
 
         builder.Services.AddControllers();
+
+        builder.Services.AddSingleton<ICompetitivenessAnalysisService, CompetitivenessAnalysisService>();
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
