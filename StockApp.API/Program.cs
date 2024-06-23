@@ -1,3 +1,5 @@
+using StockApp.Application.Interfaces;
+using StockApp.Application.Services;
 using StockApp.Infra.IoC;
 
 internal class Program
@@ -12,6 +14,11 @@ internal class Program
         builder.Services.AddControllers();
 
         builder.Services.AddEndpointsApiExplorer();
+
+        builder.Services.AddControllers();
+        builder.Services.AddSingleton<IEmployeePerformanceEvaluationService, EmployeePerformanceEvaluationService>();
+
+
         builder.Services.AddSwaggerGen();
 
         var app = builder.Build();
