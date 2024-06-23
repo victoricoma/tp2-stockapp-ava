@@ -15,6 +15,7 @@ namespace StockApp.Application.Services
     {
         private IProductRepository _productRepository;
         private IMapper _mapper;
+        
 
         public ProductService(IProductRepository productRepository, IMapper mapper)
         {
@@ -77,6 +78,11 @@ namespace StockApp.Application.Services
         public Product Create(Product product)
         {
             return _productRepository.Create(product);
+        }
+
+        public void Update(Product product)
+        {
+            _productRepository.Update(product);
         }
     }
 }

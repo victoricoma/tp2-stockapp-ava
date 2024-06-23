@@ -25,5 +25,6 @@ namespace StockApp.Domain.Interfaces
         Task GetByIdAsync(int id);
         Task AddAsync(Product product);
         IEnumerable<Product> GetAll();
+        Task UpdateAsync(Product product);
     }
 }
