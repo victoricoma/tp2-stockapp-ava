@@ -38,5 +38,15 @@ namespace StockApp.API.Controllers
             await _productRepository.AddAsync(product);
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, Product product)
+        {
+            if (product ==null)
+            {
+                return BadRequest();
+            }
+            await _productRepository.UpdateAsync(product);
+            return NoContent();
+        }
     }
 }

@@ -13,6 +13,7 @@ namespace StockApp.Application.Interfaces
         IEnumerable<ProductDTO> GetAll();
         Product GetByID(int id);
         Product Create(Product product);
+        void Update(Product product);
         Task<IEnumerable<ProductDTO>> GetProducts();
         Task<ProductDTO> GetProductById(int? id);
         Task Add(ProductDTO productDto);
