@@ -21,7 +21,7 @@ namespace StockApp.Domain.Interfaces
         Task<Product> Remove(Product product);
 
 
-        Task GetAllAsync();
+        Task GetAllAsync(int pageNumber);
         Task GetByIdAsync(int id);
         Task AddAsync(Product product);
         IEnumerable<Product> GetAll();
