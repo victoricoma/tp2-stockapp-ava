@@ -69,6 +69,11 @@ namespace StockApp.API.Controllers
             }
             await _productRepository.Remove(id);
             return NoContent();
+
+
+
+
+
         }
     }
 }
