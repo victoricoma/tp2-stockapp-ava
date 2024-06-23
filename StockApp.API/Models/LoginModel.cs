@@ -13,6 +13,6 @@ namespace StockApp.API.Models
             "{1} characters long.", MinimumLength = 10)]
         [DataType(DataType.Password)]
         public string Password { get; set; }
-        public string Test { get; set; }
+        
     }
 }
