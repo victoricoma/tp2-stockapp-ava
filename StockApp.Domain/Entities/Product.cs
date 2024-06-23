@@ -7,6 +7,7 @@ namespace StockApp.Domain.Entities
     public class Product
     {
         public int Id { get; set; }
+        public ICollection<Order> Orders { get; set; }
 
         [Required(ErrorMessage = "Name is required.")]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "Name must be between 3 and 100 characters.")]
