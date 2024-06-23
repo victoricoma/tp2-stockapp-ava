@@ -77,5 +77,11 @@ namespace StockApp.API.Controllers
             await _productRepository.BulkUpdateAsync(products);
             return NoContent();
         }
+        [HttpPost("compare")]
+        public async Task<ActionResult<IEnumerable<Product>>> CompareProducts([FromBody] List<int> productIds)
+        {
+            var products = await _productRepository.GetByIdsAsync(productIds);
+            return Ok(products);
+        }
     }
 }
